@@ -1,8 +1,8 @@
 import { HttpModule } from '@nestjs/axios'
 import { Test, TestingModule } from '@nestjs/testing'
-import { BlockchainService } from './blockchain.service'
+import { BlockchainService } from './../blockchain.service'
 
-import { MempoolSpaceRepository } from './repositories'
+import { MempoolSpaceRepository } from './../repositories'
 
 describe('BlockchainService', () => {
   let service: BlockchainService
