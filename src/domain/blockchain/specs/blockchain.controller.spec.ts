@@ -1,10 +1,10 @@
 import { HttpModule } from '@nestjs/axios'
 import { Test, TestingModule } from '@nestjs/testing'
-import { BlockRequestDto, BlockResponseDto } from './dto'
-import { BlockchainController } from './blockchain.controller'
-import { BlockchainService } from './blockchain.service'
+import { BlockRequestDto, BlockResponseDto } from './../dto'
+import { BlockchainController } from './../blockchain.controller'
+import { BlockchainService } from './../blockchain.service'
 
-import { MempoolSpaceRepository } from './repositories'
+import { MempoolSpaceRepository } from './../repositories'
 
 const RepositoryMock = {}
 
