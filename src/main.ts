@@ -1,8 +1,10 @@
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { NestFactory } from '@nestjs/core'
+import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { swaggerConfig } from './config/swagger.config'
+import { GenericExceptionsFilter, HttpExceptionFilter } from './shared/filters'
+import { ResponseInterceptor } from './shared/interceptors'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -11,6 +13,10 @@ async function bootstrap() {
   const NODE_ENV = cfgService.get<string>('NODE_ENV', 'LOCAL')
 
   await swaggerConfig(app)
+
+  app.useGlobalInterceptors(new ResponseInterceptor())
+  app.useGlobalFilters(new GenericExceptionsFilter(app.get(HttpAdapterHost)))
+  app.useGlobalFilters(new HttpExceptionFilter())
 
   app.useGlobalPipes(
     new ValidationPipe({
