@@ -1,7 +1,13 @@
-import { IsOptional, IsString } from 'class-validator'
+import { Type } from 'class-transformer'
+import { IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class BlockRequestDto {
   @IsString()
   @IsOptional()
-  hash: string
+  hash?: string
+
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  height?: number
 }

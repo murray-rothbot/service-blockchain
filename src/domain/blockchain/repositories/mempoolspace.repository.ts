@@ -3,8 +3,8 @@ import { AxiosResponse } from 'axios'
 import { Injectable } from '@nestjs/common'
 import { catchError, lastValueFrom, map } from 'rxjs'
 import { BlockRequestDto, BlockResponseDto } from '../dto'
-import { IBlockRepository } from '../interfaces/blockchain-repository.interface'
-import { IMempoolSpace } from '../interfaces'
+import { BlockTimeRequestDto, BlockTimeResponseDto } from '../dto'
+import { IBlockRepository, IMempoolSpace } from '../interfaces'
 
 @Injectable()
 export class MempoolSpaceRepository implements IBlockRepository {
@@ -13,9 +13,10 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
   constructor(private readonly httpService: HttpService) {}
 
-  async getBlock({ hash }: BlockRequestDto): Promise<BlockResponseDto> {
+  async getBlock({ hash, height }: BlockRequestDto): Promise<BlockResponseDto> {
     if (!hash) {
-      const url = `${this.baseUrl}/blocks/tip/hash`
+      const uri = height ? `block-height/${height}` : 'blocks/tip/hash'
+      const url = `${this.baseUrl}/${uri}`
 
       hash = await lastValueFrom(
         this.httpService.get(url).pipe(
