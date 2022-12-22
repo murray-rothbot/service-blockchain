@@ -32,6 +32,8 @@ export class MempoolSpaceRepository implements IBlockRepository {
       )
     }
 
+    if (!hash) return null
+
     const url = `${this.baseUrl}/v1/block/${hash}`
 
     return lastValueFrom(
