@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common'
 import { BlockchainService } from './blockchain.service'
-import { BlockRequestDto, BlockResponseDto } from './dto'
+import { BlockRequestDto, BlockResponseDto, FeesResponseDto } from './dto'
 import { BlockTimeRequestDto, BlockTimeResponseDto } from './dto'
 
 @Controller('')
@@ -15,5 +15,10 @@ export class BlockchainController {
   @Get('/block2time')
   async getBlockTime(@Query() params: BlockTimeRequestDto): Promise<BlockTimeResponseDto> {
     return await this.blockService.getBlockTime(params)
+  }
+
+  @Get('/fees')
+  async getFees(): Promise<FeesResponseDto> {
+    return await this.blockService.getFees()
   }
 }

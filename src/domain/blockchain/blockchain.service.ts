@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { BlockRequestDto, BlockResponseDto } from './dto'
+import { BlockRequestDto, BlockResponseDto, FeesResponseDto } from './dto'
 import { BlockTimeRequestDto, BlockTimeResponseDto } from './dto'
 
 import { MempoolSpaceRepository } from './repositories'
@@ -27,5 +27,10 @@ export class BlockchainService {
     const estimative = current.timestamp + (height - current.height) * 600
 
     return { timestamp: estimative, height, in_future: true }
+  }
+
+  async getFees(): Promise<FeesResponseDto> {
+    const response = await this.mempoolRepository.getFees()
+    return response
   }
 }
