@@ -30,7 +30,6 @@ export class BlockchainService {
   }
 
   async getFees(): Promise<FeesResponseDto> {
-    const response = await this.mempoolRepository.getFees()
-    return response
+    return await this.mempoolRepository.getFees()
   }
 }
