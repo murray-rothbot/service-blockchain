@@ -2,9 +2,8 @@ import { HttpService } from '@nestjs/axios'
 import { AxiosResponse } from 'axios'
 import { Injectable } from '@nestjs/common'
 import { catchError, lastValueFrom, map } from 'rxjs'
-import { BlockRequestDto, BlockResponseDto } from '../dto'
-import { BlockTimeRequestDto, BlockTimeResponseDto } from '../dto'
-import { IBlockRepository, IMempoolSpace } from '../interfaces'
+import { BlockRequestDto, BlockResponseDto, FeesResponseDto } from '../dto'
+import { IBlockRepository, IBlockResponse, IFeesResponse } from '../interfaces'
 
 @Injectable()
 export class MempoolSpaceRepository implements IBlockRepository {
@@ -20,7 +19,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
       hash = await lastValueFrom(
         this.httpService.get(url).pipe(
-          map((response: AxiosResponse<any>): string => {
+          map((response: AxiosResponse<string>): string => {
             return response.data
           }),
           catchError(async () => {
@@ -38,7 +37,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<IMempoolSpace>): BlockResponseDto => {
+        map((response: AxiosResponse<IBlockResponse>): BlockResponseDto => {
           return response.data
         }),
         catchError(async () => {
@@ -48,5 +47,24 @@ export class MempoolSpaceRepository implements IBlockRepository {
         }),
       ),
     )
+  }
+
+  async getFees(): Promise<FeesResponseDto> {
+    const url = `${this.baseUrl}/v1/fees/recommended`
+
+    const { fastestFee, halfHourFee, hourFee, economyFee, minimumFee } = await lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<IFeesResponse>): FeesResponseDto => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
+
+    return { fastestFee, halfHourFee, hourFee, economyFee, minimumFee }
   }
 }
