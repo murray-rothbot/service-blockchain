@@ -3,7 +3,6 @@ import { AxiosResponse } from 'axios'
 import { Injectable } from '@nestjs/common'
 import { catchError, lastValueFrom, map } from 'rxjs'
 import { BlockRequestDto, BlockResponseDto, FeesResponseDto } from '../dto'
-import { BlockTimeRequestDto, BlockTimeResponseDto } from '../dto'
 import { IBlockRepository, IMempoolSpace } from '../interfaces'
 
 @Injectable()
