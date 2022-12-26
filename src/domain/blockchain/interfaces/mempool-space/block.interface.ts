@@ -1,4 +1,4 @@
-export type IMempoolSpace = {
+export type IBlockResponse = {
   extras: {}
   id: string
   height: number

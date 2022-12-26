@@ -3,7 +3,7 @@ import { AxiosResponse } from 'axios'
 import { Injectable } from '@nestjs/common'
 import { catchError, lastValueFrom, map } from 'rxjs'
 import { BlockRequestDto, BlockResponseDto, FeesResponseDto } from '../dto'
-import { IBlockRepository, IMempoolSpace } from '../interfaces'
+import { IBlockRepository, IBlockResponse, IFeesResponse } from '../interfaces'
 
 @Injectable()
 export class MempoolSpaceRepository implements IBlockRepository {
@@ -19,7 +19,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
       hash = await lastValueFrom(
         this.httpService.get(url).pipe(
-          map((response: AxiosResponse<any>): string => {
+          map((response: AxiosResponse<string>): string => {
             return response.data
           }),
           catchError(async () => {
@@ -37,7 +37,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<IMempoolSpace>): BlockResponseDto => {
+        map((response: AxiosResponse<IBlockResponse>): BlockResponseDto => {
           return response.data
         }),
         catchError(async () => {
@@ -54,7 +54,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
     const { fastestFee, halfHourFee, hourFee, economyFee, minimumFee } = await lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<any>): FeesResponseDto => {
+        map((response: AxiosResponse<IFeesResponse>): FeesResponseDto => {
           return response.data
         }),
         catchError(async () => {
