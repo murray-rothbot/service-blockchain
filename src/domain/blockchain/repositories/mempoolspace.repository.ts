@@ -83,7 +83,6 @@ export class MempoolSpaceRepository implements IBlockRepository {
     return lastValueFrom(
       this.httpService.get(url).pipe(
         map((response: AxiosResponse<any>): AddressResponseDto => {
-          console.log(response.data)
           return response.data
         }),
         catchError(async () => {
@@ -101,7 +100,6 @@ export class MempoolSpaceRepository implements IBlockRepository {
     return lastValueFrom(
       this.httpService.get(url).pipe(
         map((response: AxiosResponse<any>): TransactionResponseDto => {
-          console.log(response.data)
           return response.data
         }),
         catchError(async () => {
