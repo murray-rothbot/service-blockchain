@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common'
-import { BlockRequestDto, BlockResponseDto, FeesResponseDto } from './dto'
-import { BlockTimeRequestDto, BlockTimeResponseDto } from './dto'
-
 import { MempoolSpaceRepository } from './repositories'
+import {
+  AddressRequestDto,
+  AddressResponseDto,
+  BlockRequestDto,
+  BlockResponseDto,
+  BlockTimeRequestDto,
+  BlockTimeResponseDto,
+  FeesResponseDto,
+  TransactionRequestDto,
+  TransactionResponseDto,
+} from './dto'
 
 @Injectable()
 export class BlockchainService {
@@ -31,5 +39,13 @@ export class BlockchainService {
 
   async getFees(): Promise<FeesResponseDto> {
     return await this.mempoolRepository.getFees()
+  }
+
+  async getAddress({ address }: AddressRequestDto): Promise<AddressResponseDto> {
+    return await this.mempoolRepository.getAddress({ address })
+  }
+
+  async getTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
+    return await this.mempoolRepository.getTransaction({ transaction })
   }
 }

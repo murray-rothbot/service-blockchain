@@ -2,8 +2,22 @@ import { HttpService } from '@nestjs/axios'
 import { AxiosResponse } from 'axios'
 import { Injectable } from '@nestjs/common'
 import { catchError, lastValueFrom, map } from 'rxjs'
-import { BlockRequestDto, BlockResponseDto, FeesResponseDto } from '../dto'
-import { IBlockRepository, IBlockResponse, IFeesResponse } from '../interfaces'
+import {
+  AddressRequestDto,
+  AddressResponseDto,
+  BlockRequestDto,
+  BlockResponseDto,
+  FeesResponseDto,
+  TransactionRequestDto,
+  TransactionResponseDto,
+} from '../dto'
+import {
+  IBlockRepository,
+  IBlockResponse,
+  IFeesResponse,
+  IAddressResponse,
+  ITxResponse,
+} from '../interfaces'
 
 @Injectable()
 export class MempoolSpaceRepository implements IBlockRepository {
@@ -66,5 +80,39 @@ export class MempoolSpaceRepository implements IBlockRepository {
     )
 
     return { fastestFee, halfHourFee, hourFee, economyFee, minimumFee }
+  }
+
+  async getAddress({ address }: AddressRequestDto): Promise<AddressResponseDto> {
+    const url = `${this.baseUrl}/address/${address}`
+
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<IAddressResponse>): AddressResponseDto => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
+  }
+
+  async getTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
+    const url = `${this.baseUrl}/tx/${transaction}`
+
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<ITxResponse>): TransactionResponseDto => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
   }
 }
