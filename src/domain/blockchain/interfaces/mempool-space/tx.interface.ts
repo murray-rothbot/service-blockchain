@@ -1,4 +1,4 @@
-export class TransactionResponseDto {
+export type ITxResponse = {
   txid: string
   version: number
   locktime: number

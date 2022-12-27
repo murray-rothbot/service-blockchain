@@ -11,7 +11,13 @@ import {
   TransactionRequestDto,
   TransactionResponseDto,
 } from '../dto'
-import { IBlockRepository, IBlockResponse, IFeesResponse } from '../interfaces'
+import {
+  IBlockRepository,
+  IBlockResponse,
+  IFeesResponse,
+  IAddressResponse,
+  ITxResponse,
+} from '../interfaces'
 
 @Injectable()
 export class MempoolSpaceRepository implements IBlockRepository {
@@ -63,7 +69,6 @@ export class MempoolSpaceRepository implements IBlockRepository {
     const { fastestFee, halfHourFee, hourFee, economyFee, minimumFee } = await lastValueFrom(
       this.httpService.get(url).pipe(
         map((response: AxiosResponse<IFeesResponse>): FeesResponseDto => {
-          console.log(response.data)
           return response.data
         }),
         catchError(async () => {
@@ -82,7 +87,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<any>): AddressResponseDto => {
+        map((response: AxiosResponse<IAddressResponse>): AddressResponseDto => {
           return response.data
         }),
         catchError(async () => {
@@ -99,7 +104,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<any>): TransactionResponseDto => {
+        map((response: AxiosResponse<ITxResponse>): TransactionResponseDto => {
           return response.data
         }),
         catchError(async () => {
