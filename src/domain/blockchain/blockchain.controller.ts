@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common'
+import { Controller, Get, Query, Param } from '@nestjs/common'
 import { BlockchainService } from './blockchain.service'
 import {
   AddressRequestDto,
@@ -31,13 +31,13 @@ export class BlockchainController {
     return await this.blockService.getFees()
   }
 
-  @Get('/address')
-  async getAddress(@Query() params: AddressRequestDto): Promise<AddressResponseDto> {
+  @Get('/address/:address')
+  async getAddress(@Param() params: AddressRequestDto): Promise<AddressResponseDto> {
     return await this.blockService.getAddress(params)
   }
 
-  @Get('/tx')
-  async getTransaction(@Query() params: TransactionRequestDto): Promise<TransactionResponseDto> {
+  @Get('/tx/:transaction')
+  async getTransaction(@Param() params: TransactionRequestDto): Promise<TransactionResponseDto> {
     return await this.blockService.getTransaction(params)
   }
 }
