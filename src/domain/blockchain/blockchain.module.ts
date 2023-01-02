@@ -9,5 +9,6 @@ import { MempoolSpaceRepository } from './repositories'
   controllers: [BlockchainController],
   imports: [HttpModule],
   providers: [BlockchainService, MempoolSpaceRepository],
+  exports: [BlockchainService],
 })
 export class BlockchainModule {}
