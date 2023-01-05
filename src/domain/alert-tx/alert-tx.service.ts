@@ -3,7 +3,7 @@ import { Cron } from '@nestjs/schedule'
 import { InjectModel } from '@nestjs/sequelize'
 import { BlockchainService } from '../blockchain/blockchain.service'
 import { AlertTx } from './alert-tx.model'
-import { CreateAlertTxDto } from './dto/create-alert-tx.dto'
+import { CreateAlertTxDto, ListAlertTxDto } from './dto'
 import { HttpService } from '@nestjs/axios'
 import { catchError, lastValueFrom, map } from 'rxjs'
 import { InjectWebSocketProvider, WebSocketClient, OnOpen, OnMessage } from 'nestjs-websocket'
@@ -114,6 +114,12 @@ export class AlertTxService {
         }
       })
     }
+  }
+
+  async list(data: ListAlertTxDto): Promise<AlertTx[]> {
+    return this.alertTxModel.findAll({
+      where: { webhookUrl: data.webhookUrl, active: true },
+    })
   }
 
   async deactivateAlert(id: number): Promise<void> {

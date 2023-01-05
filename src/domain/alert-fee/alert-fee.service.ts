@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/sequelize'
 import { Op } from 'sequelize'
 import { BlockchainService } from '../blockchain/blockchain.service'
 import { AlertFee } from './alert-fee.model'
-import { CreateAlertFeeDto } from './dto/create-alert-fee.dto'
+import { CreateAlertFeeDto, ListAlertFeeDto } from './dto'
 import { HttpService } from '@nestjs/axios'
 import { catchError, lastValueFrom, map } from 'rxjs'
 
@@ -26,6 +26,13 @@ export class AlertFeeService {
       active: true,
     })
     return newAlertFee
+  }
+
+  async list(data: ListAlertFeeDto): Promise<AlertFee[]> {
+    return this.alertFeeModel.findAll({
+      where: { webhookUrl: data.webhookUrl, active: true },
+      order: ['fee'],
+    })
   }
 
   @Cron('*/5 * * * * *')
