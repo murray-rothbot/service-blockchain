@@ -20,6 +20,21 @@ export class AlertFeeService {
   ) {}
 
   async create(data: CreateAlertFeeDto): Promise<AlertFee> {
+    if (data.fee <= 0) {
+      data.fee = 1
+    }
+
+    // check if tx already exists
+    const alertFee = await this.alertFeeModel.findOne({
+      where: {
+        webhookUrl: data.webhookUrl,
+        fee: data.fee,
+        active: true,
+      },
+    })
+    if (alertFee) return alertFee
+
+    // create new alert
     const newAlertFee = await this.alertFeeModel.create({
       webhookUrl: data.webhookUrl,
       fee: data.fee,
