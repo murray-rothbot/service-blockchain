@@ -61,6 +61,16 @@ export class AlertTxService {
       data.confirmationsAlert = 6
     }
 
+    //check if tx already exists
+    const alertTx = await this.alertTxModel.findOne({
+      where: {
+        webhookUrl: data.webhookUrl,
+        txId: data.txId,
+        active: true,
+      },
+    })
+    if (alertTx) return alertTx
+
     const newAlertFee = await this.alertTxModel.create({
       webhookUrl: data.webhookUrl,
       txId: data.txId,
