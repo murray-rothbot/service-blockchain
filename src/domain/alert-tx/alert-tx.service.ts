@@ -83,65 +83,48 @@ export class AlertTxService {
   async checkAlertTx(block: number) {
     this.logger.debug(`Checking alert tx...`)
 
-    // check if any alert is triggered
-    const triggeredAlerts = await this.alertTxModel.findAll({
-      where: {
-        active: true,
-      },
-    })
+    const triggeredAlerts = await this.alertTxModel.findAll({ where: { active: true } })
+
+    if (triggeredAlerts.length === 0) return this.logger.debug(`No alerts triggered.`)
 
     // post triggered alerts to their webhooks
-    if (triggeredAlerts.length > 0) {
-      triggeredAlerts.map(async (alert) => {
-        const alertReturn = JSON.parse(JSON.stringify(alert))
-        const { status } = await this.blockchainService.getTransaction({
-          transaction: alert.txId,
-        })
-        if (status.block_height) {
-          const { block_height } = status
-          const confirmations = block - block_height + 1 // +1 because block_height is 0 indexed
-          alertReturn.currentConfirmation = confirmations
-          alertReturn.currentBlock = block
-          await lastValueFrom(
-            this.httpService.post(alert.webhookUrl, alertReturn).pipe(
-              map(async (response: any) => {
-                // deactivate triggered alerts
-                // if webhook response is OK
-                // and confirmations are reached
-                if (
-                  response.data.data.message === 'OK' &&
-                  confirmations >= alert.confirmationsAlert
-                ) {
-                  await this.deactivateAlert(alert.id)
-                }
-              }),
-              catchError(async () => {
-                this.logger.error(`ERROR POST ${alert.webhookUrl}`)
-                return null
-              }),
-            ),
-          )
-        }
+    triggeredAlerts.map(async (alert) => {
+      const alertReturn = JSON.parse(JSON.stringify(alert))
+      const data = await this.blockchainService.getTransaction({
+        transaction: alert.txId,
       })
-    }
+      if (data === null) return
+
+      const status = data?.status
+      if (status?.block_height) {
+        const confirmations = block - status.block_height + 1 // +1 because block_height is 0 indexed
+        alertReturn.currentConfirmation = confirmations
+        alertReturn.currentBlock = block
+        await lastValueFrom(
+          this.httpService.post(alert.webhookUrl, alertReturn).pipe(
+            map(async (response: any) => {
+              if (
+                response.data.data.message === 'OK' &&
+                confirmations >= alert.confirmationsAlert
+              ) {
+                await this.deactivateAlert(alert.id)
+              }
+            }),
+            catchError(async () => {
+              this.logger.error(`ERROR POST ${alert.webhookUrl}`)
+              return null
+            }),
+          ),
+        )
+      }
+    })
   }
 
   async list(data: ListAlertTxDto): Promise<AlertTx[]> {
-    return this.alertTxModel.findAll({
-      where: { webhookUrl: data.webhookUrl, active: true },
-    })
+    return this.alertTxModel.findAll({ where: { webhookUrl: data.webhookUrl, active: true } })
   }
 
   async deactivateAlert(id: number): Promise<void> {
-    await this.alertTxModel.update(
-      {
-        active: false,
-      },
-      {
-        where: {
-          id,
-        },
-      },
-    )
+    await this.alertTxModel.update({ active: false }, { where: { id } })
   }
 }
