@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/sequelize'
 import { Op } from 'sequelize'
 import { BlockchainService } from '../blockchain/blockchain.service'
 import { AlertFee } from './alert-fee.model'
-import { CreateAlertFeeDto } from './dto/create-alert-fee.dto'
+import { CreateAlertFeeDto, ListAlertFeeDto } from './dto'
 import { HttpService } from '@nestjs/axios'
 import { catchError, lastValueFrom, map } from 'rxjs'
 
@@ -20,12 +20,34 @@ export class AlertFeeService {
   ) {}
 
   async create(data: CreateAlertFeeDto): Promise<AlertFee> {
+    if (data.fee <= 0) {
+      data.fee = 1
+    }
+
+    // check if tx already exists
+    const alertFee = await this.alertFeeModel.findOne({
+      where: {
+        webhookUrl: data.webhookUrl,
+        fee: data.fee,
+        active: true,
+      },
+    })
+    if (alertFee) return alertFee
+
+    // create new alert
     const newAlertFee = await this.alertFeeModel.create({
       webhookUrl: data.webhookUrl,
       fee: data.fee,
       active: true,
     })
     return newAlertFee
+  }
+
+  async list(data: ListAlertFeeDto): Promise<AlertFee[]> {
+    return this.alertFeeModel.findAll({
+      where: { webhookUrl: data.webhookUrl, active: true },
+      order: ['fee'],
+    })
   }
 
   @Cron('*/5 * * * * *')
