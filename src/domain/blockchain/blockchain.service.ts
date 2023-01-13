@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { MempoolSpaceRepository } from './repositories'
+import { HttpService } from '@nestjs/axios'
+import { catchError, lastValueFrom, map } from 'rxjs'
 import {
   AddressRequestDto,
   AddressResponseDto,
@@ -14,7 +16,12 @@ import {
 
 @Injectable()
 export class BlockchainService {
-  constructor(private readonly mempoolRepository: MempoolSpaceRepository) {}
+  private readonly logger = new Logger(BlockchainService.name)
+
+  constructor(
+    private readonly mempoolRepository: MempoolSpaceRepository,
+    protected readonly httpService: HttpService,
+  ) {}
 
   async getBlock(params: BlockRequestDto): Promise<BlockResponseDto> {
     return await this.mempoolRepository.getBlock(params)
@@ -47,5 +54,18 @@ export class BlockchainService {
 
   async getTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
     return await this.mempoolRepository.getTransaction({ transaction })
+  }
+
+  async postBlock({ block }: { block: string }): Promise<void> {
+    const webhookUrl = `${process.env.DISCORD_CLIENT_URL}/webhooks/new-block`
+    await lastValueFrom(
+      this.httpService.post(webhookUrl, block).pipe(
+        map(() => {}),
+        catchError(async () => {
+          this.logger.error(`ERROR POST ${webhookUrl}`)
+          return null
+        }),
+      ),
+    )
   }
 }

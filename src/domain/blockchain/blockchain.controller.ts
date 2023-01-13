@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param, Logger, Injectable } from '@nestjs/common'
+import { Controller, Get, Query, Param, Logger } from '@nestjs/common'
 import { BlockchainService } from './blockchain.service'
 import {
   AddressRequestDto,
@@ -13,8 +13,6 @@ import {
 } from './dto'
 import { InjectWebSocketProvider, WebSocketClient, OnOpen, OnMessage } from 'nestjs-websocket'
 import { Cron } from '@nestjs/schedule'
-import { HttpService } from '@nestjs/axios'
-import { catchError, lastValueFrom, map } from 'rxjs'
 
 @Controller('')
 export class BlockchainController {
@@ -25,7 +23,6 @@ export class BlockchainController {
     @InjectWebSocketProvider()
     private readonly ws: WebSocketClient,
     private readonly blockService: BlockchainService,
-    protected readonly httpService: HttpService,
   ) {}
 
   @OnOpen()
@@ -53,16 +50,7 @@ export class BlockchainController {
     this.data = JSON.parse(data.toString())
 
     if (this.data.block) {
-      const webhookUrl = `${process.env.DISCORD_CLIENT_URL}/webhooks/new-block`
-      await lastValueFrom(
-        this.httpService.post(webhookUrl, this.data.block).pipe(
-          map(() => {}),
-          catchError(async () => {
-            this.logger.error(`ERROR POST ${webhookUrl}`)
-            return null
-          }),
-        ),
-      )
+      this.blockService.postBlock({ block: this.data.block })
     }
     if (this.data.pong) {
       this.logger.debug(`Mempool.Space Websocket ping.`)
