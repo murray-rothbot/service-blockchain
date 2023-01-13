@@ -1,12 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Cron } from '@nestjs/schedule'
 import { InjectModel } from '@nestjs/sequelize'
 import { BlockchainService } from '../blockchain/blockchain.service'
 import { AlertTx } from './alert-tx.model'
 import { CreateAlertTxDto, ListAlertTxDto } from './dto'
 import { HttpService } from '@nestjs/axios'
 import { catchError, lastValueFrom, map } from 'rxjs'
-import { InjectWebSocketProvider, WebSocketClient, OnOpen, OnMessage } from 'nestjs-websocket'
+import { WebSocketClient, OnMessage } from 'nestjs-websocket'
 
 @Injectable()
 export class AlertTxService {
@@ -14,24 +13,11 @@ export class AlertTxService {
   private data: Record<any, any> = {}
 
   constructor(
-    @InjectWebSocketProvider()
-    private readonly ws: WebSocketClient,
     @InjectModel(AlertTx)
     private alertTxModel: typeof AlertTx,
     private readonly blockchainService: BlockchainService,
     protected readonly httpService: HttpService,
   ) {}
-
-  @OnOpen()
-  openWs() {
-    this.logger.debug(`Mempool.Space Websocket watching 'blocks'.`)
-    this.ws.send(
-      JSON.stringify({
-        action: 'want',
-        data: ['blocks'],
-      }),
-    )
-  }
 
   @OnMessage()
   messageWs(data: WebSocketClient.Data) {
@@ -39,18 +25,6 @@ export class AlertTxService {
     if (this.data.block) {
       this.checkAlertTx(this.data.block.height)
     }
-    if (this.data.pong) {
-      this.logger.debug(`Mempool.Space Websocket ping.`)
-    }
-  }
-
-  @Cron('*/10 * * * * *')
-  pingWs() {
-    this.ws.send(
-      JSON.stringify({
-        action: 'ping',
-      }),
-    )
   }
 
   async create(data: CreateAlertTxDto): Promise<AlertTx> {

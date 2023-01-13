@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param } from '@nestjs/common'
+import { Controller, Get, Query, Param, Logger, Injectable } from '@nestjs/common'
 import { BlockchainService } from './blockchain.service'
 import {
   AddressRequestDto,
@@ -11,10 +11,63 @@ import {
   TransactionRequestDto,
   TransactionResponseDto,
 } from './dto'
+import { InjectWebSocketProvider, WebSocketClient, OnOpen, OnMessage } from 'nestjs-websocket'
+import { Cron } from '@nestjs/schedule'
+import { HttpService } from '@nestjs/axios'
+import { catchError, lastValueFrom, map } from 'rxjs'
 
 @Controller('')
 export class BlockchainController {
-  constructor(private readonly blockService: BlockchainService) {}
+  private readonly logger = new Logger(BlockchainController.name)
+  private data: Record<any, any> = {}
+
+  constructor(
+    @InjectWebSocketProvider()
+    private readonly ws: WebSocketClient,
+    private readonly blockService: BlockchainService,
+    protected readonly httpService: HttpService,
+  ) {}
+
+  @OnOpen()
+  openWs() {
+    this.logger.debug(`Mempool.Space Websocket watching.`)
+    this.ws.send(
+      JSON.stringify({
+        action: 'want',
+        data: ['blocks'],
+      }),
+    )
+  }
+
+  @Cron('*/10 * * * * *')
+  pingWs() {
+    this.ws.send(
+      JSON.stringify({
+        action: 'ping',
+      }),
+    )
+  }
+
+  @OnMessage()
+  async messageWs(data: WebSocketClient.Data) {
+    this.data = JSON.parse(data.toString())
+
+    if (this.data.block) {
+      const webhookUrl = `${process.env.DISCORD_CLIENT_URL}/webhooks/new-block`
+      await lastValueFrom(
+        this.httpService.post(webhookUrl, this.data.block).pipe(
+          map(() => {}),
+          catchError(async () => {
+            this.logger.error(`ERROR POST ${webhookUrl}`)
+            return null
+          }),
+        ),
+      )
+    }
+    if (this.data.pong) {
+      this.logger.debug(`Mempool.Space Websocket ping.`)
+    }
+  }
 
   @Get('/block')
   async getBlock(@Query() params: BlockRequestDto): Promise<BlockResponseDto> {
