@@ -60,7 +60,9 @@ export class BlockchainService {
     const webhookUrl = `${process.env.DISCORD_CLIENT_URL}/webhooks/new-block`
     await lastValueFrom(
       this.httpService.post(webhookUrl, block).pipe(
-        map(() => {}),
+        map(() => {
+          this.logger.debug(`POST WEBHOOK - ${webhookUrl}`)
+        }),
         catchError(async () => {
           this.logger.error(`ERROR POST ${webhookUrl}`)
           return null
