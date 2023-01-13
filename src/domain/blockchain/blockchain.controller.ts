@@ -26,35 +26,21 @@ export class BlockchainController {
   ) {}
 
   @OnOpen()
-  openWs() {
+  openWs(): void {
     this.logger.debug(`Mempool.Space Websocket watching.`)
-    this.ws.send(
-      JSON.stringify({
-        action: 'want',
-        data: ['blocks'],
-      }),
-    )
+    this.ws.send(JSON.stringify({ action: 'want', data: ['blocks'] }))
   }
 
   @Cron('*/10 * * * * *')
-  pingWs() {
-    this.ws.send(
-      JSON.stringify({
-        action: 'ping',
-      }),
-    )
+  pingWs(): void {
+    this.ws.send(JSON.stringify({ action: 'ping' }))
   }
 
   @OnMessage()
-  async messageWs(data: WebSocketClient.Data) {
+  async messageWs(data: WebSocketClient.Data): Promise<void> {
     this.data = JSON.parse(data.toString())
-
-    if (this.data.block) {
-      this.blockService.postBlock({ block: this.data.block })
-    }
-    if (this.data.pong) {
-      this.logger.debug(`Mempool.Space Websocket ping.`)
-    }
+    if (this.data.block) this.blockService.postBlock({ block: this.data.block })
+    if (this.data.pong) this.logger.debug(`Mempool.Space Websocket ping.`)
   }
 
   @Get('/block')
