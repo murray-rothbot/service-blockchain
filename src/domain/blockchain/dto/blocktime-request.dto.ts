@@ -10,4 +10,8 @@ export class BlockTimeRequestDto {
   @IsOptional()
   @Type(() => Number)
   height?: number
+
+  @IsOptional()
+  @IsString()
+  network?: 'mainnet' | 'testnet'
 }

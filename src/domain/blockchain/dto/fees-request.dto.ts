@@ -1,11 +1,6 @@
 import { IsOptional, IsString } from 'class-validator'
 
-export class AddressRequestDto {
-  @IsString()
-  address: string
-}
-
-export class AddressRequestQueryDto {
+export class FeesRequestQueryDto {
   @IsOptional()
   @IsString()
   network?: 'mainnet' | 'testnet'
