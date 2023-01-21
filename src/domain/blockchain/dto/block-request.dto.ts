@@ -10,4 +10,8 @@ export class BlockRequestDto {
   @IsOptional()
   @Type(() => Number)
   height?: number
+
+  @IsOptional()
+  @IsString()
+  network?: 'mainnet' | 'testnet'
 }

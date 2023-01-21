@@ -17,3 +17,14 @@ export class AddressResponseDto {
     }
   }
 }
+export class AddressTxsResponseDto {
+  txid: string
+  version: number
+  locktime: number
+  vin: any
+  vout: any
+  size: number
+  weight: number
+  fee: number
+  status: any
+}

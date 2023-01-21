@@ -1,13 +1,16 @@
-import { Controller, Get, Query, Param, Logger } from '@nestjs/common'
+import { Controller, Get, Query, Param, Logger, Post, Body } from '@nestjs/common'
 import { BlockchainService } from './blockchain.service'
 import {
   AddressRequestDto,
+  AddressRequestQueryDto,
   AddressResponseDto,
   BlockRequestDto,
   BlockResponseDto,
   BlockTimeRequestDto,
   BlockTimeResponseDto,
   FeesResponseDto,
+  TransactionPostDto,
+  TransactionPostParamsDto,
   TransactionRequestDto,
   TransactionResponseDto,
 } from './dto'
@@ -54,17 +57,44 @@ export class BlockchainController {
   }
 
   @Get('/fees')
-  async getFees(): Promise<FeesResponseDto> {
-    return await this.blockService.getFees()
+  async getFees(@Query() params: any): Promise<FeesResponseDto> {
+    return await this.blockService.getFees(params)
   }
 
   @Get('/address/:address')
-  async getAddress(@Param() params: AddressRequestDto): Promise<AddressResponseDto> {
-    return await this.blockService.getAddress(params)
+  async getAddress(
+    @Param() params: AddressRequestDto,
+    @Query() paramsQuery: AddressRequestQueryDto,
+  ): Promise<AddressResponseDto> {
+    return await this.blockService.getAddress({ ...params, ...paramsQuery })
   }
 
-  @Get('/tx/:transaction')
+  @Get('/address/:address/txs')
+  async getAddressTxs(
+    @Param() params: AddressRequestDto,
+    @Query() paramsQuery: AddressRequestQueryDto,
+  ): Promise<AddressResponseDto> {
+    return await this.blockService.getAddressTxs({ ...params, ...paramsQuery })
+  }
+
+  @Get('/address/:address/txs/utxo')
+  async getAddressTxsUtxo(
+    @Param() params: AddressRequestDto,
+    @Query() paramsQuery: AddressRequestQueryDto,
+  ): Promise<AddressResponseDto> {
+    return await this.blockService.getAddressTxsUtxo({ ...params, ...paramsQuery })
+  }
+
+  @Get('/tx/:transaction/:network')
   async getTransaction(@Param() params: TransactionRequestDto): Promise<TransactionResponseDto> {
-    return await this.blockService.getTransaction(params)
+    return await this.blockService.getTransaction({ ...params })
+  }
+
+  @Post('/tx/:network')
+  async postTransaction(
+    @Param() paramsQuery: TransactionPostParamsDto,
+    @Body() params: TransactionPostDto,
+  ): Promise<TransactionResponseDto> {
+    return await this.blockService.postTransaction({ ...params, ...paramsQuery })
   }
 }

@@ -23,6 +23,7 @@ import {
 export class MempoolSpaceRepository implements IBlockRepository {
   source = 'Mempool.space'
   baseUrl: string = 'https://mempool.space/api'
+  baseUrlTestnet: string = 'https://mempool.space/testnet/api'
 
   constructor(private readonly httpService: HttpService) {}
 
@@ -63,8 +64,11 @@ export class MempoolSpaceRepository implements IBlockRepository {
     )
   }
 
-  async getFees(): Promise<FeesResponseDto> {
-    const url = `${this.baseUrl}/v1/fees/recommended`
+  async getFees({ network }): Promise<FeesResponseDto> {
+    let url = `${this.baseUrl}/v1/fees/recommended`
+    if (network === 'testnet') {
+      url = `${this.baseUrlTestnet}/v1/fees/recommended`
+    }
 
     const { fastestFee, halfHourFee, hourFee, economyFee, minimumFee } = await lastValueFrom(
       this.httpService.get(url).pipe(
@@ -82,8 +86,12 @@ export class MempoolSpaceRepository implements IBlockRepository {
     return { fastestFee, halfHourFee, hourFee, economyFee, minimumFee }
   }
 
-  async getAddress({ address }: AddressRequestDto): Promise<AddressResponseDto> {
-    const url = `${this.baseUrl}/address/${address}`
+  async getAddress({ address, network }: any): Promise<AddressResponseDto> {
+    let url = `${this.baseUrl}/address/${address}`
+
+    if (network === 'testnet') {
+      url = `${this.baseUrlTestnet}/address/${address}`
+    }
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
@@ -99,17 +107,89 @@ export class MempoolSpaceRepository implements IBlockRepository {
     )
   }
 
-  async getTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
-    const url = `${this.baseUrl}/tx/${transaction}`
+  async getAddressTxs({ address, network }: any): Promise<AddressResponseDto> {
+    let url = `${this.baseUrl}/address/${address}/txs/chain`
 
+    if (network === 'testnet') {
+      url = `${this.baseUrlTestnet}/address/${address}/txs/chain`
+    }
+
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<any>): AddressResponseDto => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
+  }
+
+  async getAddressTxsUtxo({ address, network }: any): Promise<AddressResponseDto> {
+    let url = `${this.baseUrl}/address/${address}/utxo`
+
+    if (network === 'testnet') {
+      url = `${this.baseUrlTestnet}/address/${address}/utxo`
+    }
+
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<any>): AddressResponseDto => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
+  }
+
+  async getTransaction({
+    transaction,
+    network,
+  }: TransactionRequestDto): Promise<TransactionResponseDto> {
+    let url = `${this.baseUrl}/tx/${transaction}`
+
+    if (network === 'testnet') {
+      url = `${this.baseUrlTestnet}/tx/${transaction}`
+    }
     return lastValueFrom(
       this.httpService.get(url).pipe(
         map((response: AxiosResponse<ITxResponse>): TransactionResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          // // TODO: Log errordto
+          // console.error(url)
+          return null
+        }),
+      ),
+    )
+  }
+
+  async postTransaction({
+    transaction,
+    network,
+  }: TransactionRequestDto): Promise<TransactionResponseDto> {
+    let url = `${this.baseUrl}/tx`
+
+    if (network === 'testnet') {
+      url = `${this.baseUrlTestnet}/tx`
+    }
+
+    return lastValueFrom(
+      this.httpService.post(url, transaction).pipe(
+        map((response: AxiosResponse<any>): TransactionResponseDto => {
+          return response.data
+        }),
+        catchError(async (err) => {
+          // // TODO: Log errordto
+          console.error(url, err)
           return null
         }),
       ),

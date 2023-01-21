@@ -3,7 +3,6 @@ import { MempoolSpaceRepository } from './repositories'
 import { HttpService } from '@nestjs/axios'
 import { catchError, lastValueFrom, map } from 'rxjs'
 import {
-  AddressRequestDto,
   AddressResponseDto,
   BlockRequestDto,
   BlockResponseDto,
@@ -44,16 +43,46 @@ export class BlockchainService {
     return { timestamp: estimative, height, in_future: true }
   }
 
-  async getFees(): Promise<FeesResponseDto> {
-    return await this.mempoolRepository.getFees()
+  async getFees(params?: any): Promise<FeesResponseDto> {
+    if (params?.network) {
+      return await this.mempoolRepository.getFees({ network: params.network })
+    }
+    return await this.mempoolRepository.getFees({ network: 'mainnet' })
   }
 
-  async getAddress({ address }: AddressRequestDto): Promise<AddressResponseDto> {
-    return await this.mempoolRepository.getAddress({ address })
+  async getAddress({ address, network }: any): Promise<AddressResponseDto> {
+    if (network) {
+      return await this.mempoolRepository.getAddress({ address, network })
+    }
+    return await this.mempoolRepository.getAddress({ address, network })
   }
 
-  async getTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
-    return await this.mempoolRepository.getTransaction({ transaction })
+  async getAddressTxs({ address, network }: any): Promise<AddressResponseDto> {
+    if (network) {
+      return await this.mempoolRepository.getAddressTxs({ address, network })
+    }
+    return await this.mempoolRepository.getAddressTxs({ address, network })
+  }
+
+  async getAddressTxsUtxo({ address, network }: any): Promise<AddressResponseDto> {
+    if (network) {
+      return await this.mempoolRepository.getAddressTxsUtxo({ address, network })
+    }
+    return await this.mempoolRepository.getAddressTxsUtxo({ address, network })
+  }
+
+  async getTransaction({
+    transaction,
+    network,
+  }: TransactionRequestDto): Promise<TransactionResponseDto> {
+    return await this.mempoolRepository.getTransaction({ transaction, network })
+  }
+
+  async postTransaction({
+    transaction,
+    network,
+  }: TransactionRequestDto): Promise<TransactionResponseDto> {
+    return await this.mempoolRepository.postTransaction({ transaction, network })
   }
 
   async postBlock({ block }: { block: string }): Promise<void> {
