@@ -204,4 +204,36 @@ export class MempoolSpaceRepository implements IBlockRepository {
       ),
     )
   }
+
+  async getDifficulty() {
+    const url = `${this.baseUrl}/v1/difficulty-adjustment`
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<string>): string => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
+  }
+
+  async getHashrate() {
+    const url = `${this.baseUrl}/v1/mining/hashrate/1m`
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<string>): string => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
+  }
 }

@@ -99,4 +99,13 @@ export class BlockchainService {
       ),
     )
   }
+
+  async getHashRate() {
+    const [hashrate, difficulty] = await Promise.all([
+      this.mempoolRepository.getHashrate(),
+      this.mempoolRepository.getDifficulty(),
+    ])
+
+    return Object.assign(difficulty, hashrate)
+  }
 }
