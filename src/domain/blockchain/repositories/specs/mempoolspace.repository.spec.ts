@@ -1,4 +1,5 @@
 import { HttpModule } from '@nestjs/axios'
+import { ConfigModule } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { IBlockRepository } from '../../interfaces'
 import { MempoolSpaceRepository } from '../mempoolspace.repository'
@@ -9,7 +10,7 @@ describe('mempool.space repository', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [MempoolSpaceRepository],
-      imports: [HttpModule],
+      imports: [HttpModule, ConfigModule],
     }).compile()
 
     repository = module.get<IBlockRepository>(MempoolSpaceRepository)
