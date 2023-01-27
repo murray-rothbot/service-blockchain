@@ -97,4 +97,9 @@ export class BlockchainController {
   ): Promise<TransactionResponseDto> {
     return await this.blockService.postTransaction({ ...params, ...paramsQuery })
   }
+
+  @Get('/hashrate')
+  async getHashrate() {
+    return this.blockService.getHashRate()
+  }
 }

@@ -12,6 +12,7 @@ import { AlertTxModule } from './domain/alert-tx/alert-tx.module'
 import { WebSocketModule } from 'nestjs-websocket'
 import { BlockchainModule } from './domain/blockchain/blockchain.module'
 
+const mempool_ws = process.env.MEMPOOL_WS || 'wss://mempool.space'
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -31,7 +32,7 @@ import { BlockchainModule } from './domain/blockchain/blockchain.module'
       logging: false,
     }),
     WebSocketModule.forRoot({
-      url: 'wss://mempool.space/api/v1/ws',
+      url: `${mempool_ws}/api/v1/ws`,
     }),
     BlockchainModule,
     AlertFeeModule,

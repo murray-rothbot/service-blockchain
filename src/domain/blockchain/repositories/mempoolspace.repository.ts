@@ -18,14 +18,23 @@ import {
   IAddressResponse,
   ITxResponse,
 } from '../interfaces'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class MempoolSpaceRepository implements IBlockRepository {
   source = 'Mempool.space'
-  baseUrl: string = 'https://mempool.space/api'
-  baseUrlTestnet: string = 'https://mempool.space/testnet/api'
+  baseUrl: string = ''
+  baseUrlTestnet: string = ''
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly cfgService: ConfigService,
+  ) {
+    const mempool_url = this.cfgService.get<string>('MEMPOOL_URL', 'https://mempool.space')
+
+    this.baseUrl = `${mempool_url}/api`
+    this.baseUrlTestnet = `${mempool_url}/testnet/api`
+  }
 
   async getBlock({ hash, height }: BlockRequestDto): Promise<BlockResponseDto> {
     if (!hash) {
@@ -165,7 +174,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
         }),
         catchError(async () => {
           // // TODO: Log errordto
-          // console.error(url)
+          console.error(url)
           return null
         }),
       ),
@@ -190,6 +199,38 @@ export class MempoolSpaceRepository implements IBlockRepository {
         catchError(async (err) => {
           // // TODO: Log errordto
           console.error(url, err)
+          return null
+        }),
+      ),
+    )
+  }
+
+  async getDifficulty() {
+    const url = `${this.baseUrl}/v1/difficulty-adjustment`
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<string>): string => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
+  }
+
+  async getHashrate() {
+    const url = `${this.baseUrl}/v1/mining/hashrate/1m`
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<string>): string => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
           return null
         }),
       ),
