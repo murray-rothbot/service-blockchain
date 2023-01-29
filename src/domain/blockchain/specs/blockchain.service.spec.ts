@@ -1,4 +1,5 @@
 import { HttpModule } from '@nestjs/axios'
+import { ConfigModule } from '@nestjs/config'
 import { Test, TestingModule } from '@nestjs/testing'
 import { BlockchainService } from './../blockchain.service'
 
@@ -39,7 +40,7 @@ describe('BlockchainService', () => {
           useValue: RepositoryMock,
         },
       ],
-      imports: [HttpModule],
+      imports: [HttpModule, ConfigModule],
     }).compile()
 
     service = module.get<BlockchainService>(BlockchainService)
