@@ -52,8 +52,6 @@ export class AlertFeeService {
 
   @Cron('*/5 * * * * *')
   async checkAlertPrices() {
-    this.logger.debug(`Checking alert fee...`)
-
     // get current prices
     const currentFee = await this.blockchainService.getFees()
 

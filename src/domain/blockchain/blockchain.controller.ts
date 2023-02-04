@@ -43,7 +43,6 @@ export class BlockchainController {
   async messageWs(data: WebSocketClient.Data): Promise<void> {
     this.data = JSON.parse(data.toString())
     if (this.data.block) this.blockService.postBlock(this.data.block)
-    if (this.data.pong) this.logger.debug(`Mempool.Space Websocket ping.`)
   }
 
   @Get('/block')

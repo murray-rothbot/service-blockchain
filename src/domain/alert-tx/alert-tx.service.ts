@@ -55,8 +55,6 @@ export class AlertTxService {
   }
 
   async checkAlertTx(block: number) {
-    this.logger.debug(`Checking alert tx...`)
-
     const triggeredAlerts = await this.alertTxModel.findAll({ where: { active: true } })
 
     if (triggeredAlerts.length === 0) return this.logger.debug(`No alerts triggered.`)
