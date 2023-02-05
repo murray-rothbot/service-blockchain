@@ -90,7 +90,7 @@ export class BlockchainService {
   }
 
   async postBlock(block: BlockBodyDto) {
-    const webhookUrl = `${this.serviceMurrayUrl}/webhooks/new-block`
+    const webhookUrl = `${this.serviceMurrayUrl}/cronjobs/new-block`
     await lastValueFrom(
       this.httpService.post(webhookUrl, block).pipe(
         map(() => {
