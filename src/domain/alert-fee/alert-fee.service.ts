@@ -54,6 +54,10 @@ export class AlertFeeService {
   async checkAlertPrices() {
     // get current prices
     const currentFee = await this.blockchainService.getFees()
+    if (!currentFee) {
+      this.logger.error(`ERROR CRON - checkAlertPrices`)
+      return
+    }
 
     // check if any alert is triggered
     const triggeredAlerts = await this.alertFeeModel.findAll({
