@@ -50,7 +50,7 @@ export class AlertFeeService {
     })
   }
 
-  @Cron('*/5 * * * * *')
+  @Cron('*/15 * * * * *')
   async checkAlertPrices() {
     // get current prices
     const currentFee = await this.blockchainService.getFees()
