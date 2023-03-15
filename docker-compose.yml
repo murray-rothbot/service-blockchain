@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  postgresql:
+    image: bitnami/postgresql
+    environment:
+      - POSTGRESQL_USERNAME=murray
+      - POSTGRESQL_PASSWORD=1q2w3e4r
+      - POSTGRESQL_DATABASE=service-blockchain
+    ports:
+      - 5432:5432
