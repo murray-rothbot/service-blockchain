@@ -1,20 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
-import { InjectModel } from '@nestjs/sequelize'
-import { Op } from 'sequelize'
 import { BlockchainService } from '../blockchain/blockchain.service'
-import { AlertFee } from './alert-fee.model'
 import { CreateAlertFeeDto, ListAlertFeeDto } from './dto'
 import { HttpService } from '@nestjs/axios'
 import { catchError, lastValueFrom, map } from 'rxjs'
+import { PrismaService } from '../../prisma.service'
+import { AlertFee } from '@prisma/client'
 
 @Injectable()
 export class AlertFeeService {
   private readonly logger = new Logger(AlertFeeService.name)
 
   constructor(
-    @InjectModel(AlertFee)
-    private alertFeeModel: typeof AlertFee,
+    private prisma: PrismaService,
     private readonly blockchainService: BlockchainService,
     protected readonly httpService: HttpService,
   ) {}
@@ -25,28 +23,31 @@ export class AlertFeeService {
     }
 
     // check if tx already exists
-    const alertFee = await this.alertFeeModel.findOne({
+    const alertFee = await this.prisma.alertFee.findFirst({
       where: {
         webhookUrl: data.webhookUrl,
         fee: data.fee,
         active: true,
       },
     })
+
     if (alertFee) return alertFee
 
     // create new alert
-    const newAlertFee = await this.alertFeeModel.create({
-      webhookUrl: data.webhookUrl,
-      fee: data.fee,
-      active: true,
+    const newAlertFee = await this.prisma.alertFee.create({
+      data: {
+        webhookUrl: data.webhookUrl,
+        fee: data.fee,
+        active: true,
+      },
     })
     return newAlertFee
   }
 
   async list(data: ListAlertFeeDto): Promise<AlertFee[]> {
-    return this.alertFeeModel.findAll({
+    return this.prisma.alertFee.findMany({
       where: { webhookUrl: data.webhookUrl, active: true },
-      order: ['fee'],
+      orderBy: [{ fee: 'desc' }],
     })
   }
 
@@ -60,11 +61,11 @@ export class AlertFeeService {
     }
 
     // check if any alert is triggered
-    const triggeredAlerts = await this.alertFeeModel.findAll({
+    const triggeredAlerts = await this.prisma.alertFee.findMany({
       where: {
         active: true,
         fee: {
-          [Op.gte]: +currentFee.fastestFee,
+          gte: +currentFee.fastestFee,
         },
       },
     })
@@ -90,16 +91,14 @@ export class AlertFeeService {
     }
   }
 
-  async deactivateAlert(id: number): Promise<void> {
-    await this.alertFeeModel.update(
-      {
+  async deactivateAlert(id: string): Promise<void> {
+    await this.prisma.alertFee.update({
+      data: {
         active: false,
       },
-      {
-        where: {
-          id,
-        },
+      where: {
+        id,
       },
-    )
+    })
   }
 }

@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { InjectModel } from '@nestjs/sequelize'
 import { BlockchainService } from '../blockchain/blockchain.service'
-import { AlertTx } from './alert-tx.model'
 import { CreateAlertTxDto, ListAlertTxDto } from './dto'
 import { HttpService } from '@nestjs/axios'
 import { catchError, lastValueFrom, map } from 'rxjs'
 import { WebSocketClient, OnMessage } from 'nestjs-websocket'
+import { PrismaService } from '../../prisma.service'
+import { AlertTx } from '@prisma/client'
 
 @Injectable()
 export class AlertTxService {
@@ -13,8 +13,7 @@ export class AlertTxService {
   private data: Record<any, any> = {}
 
   constructor(
-    @InjectModel(AlertTx)
-    private alertTxModel: typeof AlertTx,
+    private prisma: PrismaService,
     private readonly blockchainService: BlockchainService,
     protected readonly httpService: HttpService,
   ) {}
@@ -36,26 +35,28 @@ export class AlertTxService {
     }
 
     //check if tx already exists
-    const alertTx = await this.alertTxModel.findOne({
+    const alertTx = await this.prisma.alertTx.findFirst({
       where: {
         webhookUrl: data.webhookUrl,
-        txId: data.txId,
+        txid: data.txId,
         active: true,
       },
     })
     if (alertTx) return alertTx
 
-    const newAlertFee = await this.alertTxModel.create({
-      webhookUrl: data.webhookUrl,
-      txId: data.txId,
-      confirmationsAlert: data.confirmationsAlert,
-      active: true,
+    const newAlertFee = await this.prisma.alertTx.create({
+      data: {
+        webhookUrl: data.webhookUrl,
+        txid: data.txId,
+        confirmations: data.confirmationsAlert,
+        active: true,
+      },
     })
     return newAlertFee
   }
 
   async checkAlertTx(block: number) {
-    const triggeredAlerts = await this.alertTxModel.findAll({ where: { active: true } })
+    const triggeredAlerts = await this.prisma.alertTx.findMany({ where: { active: true } })
 
     if (triggeredAlerts.length === 0) return this.logger.debug(`No alerts triggered.`)
 
@@ -63,7 +64,7 @@ export class AlertTxService {
     triggeredAlerts.map(async (alert) => {
       const alertReturn = JSON.parse(JSON.stringify(alert))
       const data = await this.blockchainService.getTransaction({
-        transaction: alert.txId,
+        transaction: alert.txid,
       })
       if (data === null) return
 
@@ -75,10 +76,7 @@ export class AlertTxService {
         await lastValueFrom(
           this.httpService.post(alert.webhookUrl, alertReturn).pipe(
             map(async (response: any) => {
-              if (
-                response.data.data.message === 'OK' &&
-                confirmations >= alert.confirmationsAlert
-              ) {
+              if (response.data.data.message === 'OK' && confirmations >= alert.confirmations) {
                 await this.deactivateAlert(alert.id)
               }
             }),
@@ -93,10 +91,10 @@ export class AlertTxService {
   }
 
   async list(data: ListAlertTxDto): Promise<AlertTx[]> {
-    return this.alertTxModel.findAll({ where: { webhookUrl: data.webhookUrl, active: true } })
+    return this.prisma.alertTx.findMany({ where: { webhookUrl: data.webhookUrl, active: true } })
   }
 
-  async deactivateAlert(id: number): Promise<void> {
-    await this.alertTxModel.update({ active: false }, { where: { id } })
+  async deactivateAlert(id: string): Promise<void> {
+    await this.prisma.alertFee.update({ data: { active: false }, where: { id } })
   }
 }
