@@ -45,6 +45,11 @@ export class BlockchainController {
     if (this.data.block) this.blockService.postBlock(this.data.block)
   }
 
+  @Get('/mempool')
+  async getMempool(): Promise<any> {
+    return await this.blockService.getMempool()
+  }
+
   @Get('/block')
   async getBlock(@Query() params: BlockRequestDto): Promise<BlockResponseDto> {
     return await this.blockService.getBlock(params)

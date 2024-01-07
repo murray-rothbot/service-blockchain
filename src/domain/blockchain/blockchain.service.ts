@@ -26,6 +26,10 @@ export class BlockchainService {
     private readonly cfgService: ConfigService,
   ) {}
 
+  async getMempool(): Promise<any> {
+    return await this.mempoolRepository.getMempool()
+  }
+
   async getBlock(params: BlockRequestDto): Promise<BlockResponseDto> {
     return await this.mempoolRepository.getBlock(params)
   }

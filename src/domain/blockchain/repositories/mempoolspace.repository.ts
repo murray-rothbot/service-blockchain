@@ -36,6 +36,23 @@ export class MempoolSpaceRepository implements IBlockRepository {
     this.baseUrlTestnet = `${mempool_url}/testnet/api`
   }
 
+  async getMempool(): Promise<any> {
+    const url = `${this.baseUrl}/mempool`
+
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map((response: AxiosResponse<IBlockResponse>): any => {
+          return response.data
+        }),
+        catchError(async () => {
+          // TODO: Log errordto
+          console.error(url)
+          return null
+        }),
+      ),
+    )
+  }
+
   async getBlock({ hash, height }: BlockRequestDto): Promise<BlockResponseDto> {
     if (!hash) {
       const uri = height ? `block-height/${height}` : 'blocks/tip/hash'
