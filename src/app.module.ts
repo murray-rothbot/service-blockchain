@@ -5,8 +5,6 @@ import { SequelizeModule } from '@nestjs/sequelize'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import config from './config/env.config'
-import { AlertFee } from './domain/alert-fee/alert-fee.model'
-import { AlertFeeModule } from './domain/alert-fee/alert-fee.module'
 import { AlertTx } from './domain/alert-tx/alert-tx.model'
 import { AlertTxModule } from './domain/alert-tx/alert-tx.module'
 import { WebSocketModule } from 'nestjs-websocket'
@@ -27,7 +25,7 @@ const mempool_ws = process.env.MEMPOOL_WS || 'wss://mempool.space'
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      models: [AlertFee, AlertTx],
+      models: [AlertTx],
       autoLoadModels: true,
       logging: false,
     }),
@@ -35,7 +33,6 @@ const mempool_ws = process.env.MEMPOOL_WS || 'wss://mempool.space'
       url: `${mempool_ws}/api/v1/ws`,
     }),
     BlockchainModule,
-    AlertFeeModule,
     AlertTxModule,
   ],
   controllers: [AppController],
