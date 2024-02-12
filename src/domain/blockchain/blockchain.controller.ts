@@ -14,13 +14,12 @@ import {
   TransactionRequestDto,
   TransactionResponseDto,
 } from './dto'
-import { InjectWebSocketProvider, WebSocketClient, OnOpen, OnMessage } from 'nestjs-websocket'
+import { InjectWebSocketProvider, WebSocketClient, OnOpen } from 'nestjs-websocket'
 import { Cron } from '@nestjs/schedule'
 
 @Controller('')
 export class BlockchainController {
   private readonly logger = new Logger(BlockchainController.name)
-  private data: Record<any, any> = {}
 
   constructor(
     @InjectWebSocketProvider()
@@ -37,12 +36,6 @@ export class BlockchainController {
   @Cron('*/10 * * * * *')
   pingWs(): void {
     this.ws.send(JSON.stringify({ action: 'ping' }))
-  }
-
-  @OnMessage()
-  async messageWs(data: WebSocketClient.Data): Promise<void> {
-    this.data = JSON.parse(data.toString())
-    if (this.data.block) this.blockService.postBlock(this.data.block)
   }
 
   @Get('/mempool')

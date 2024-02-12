@@ -1,15 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { MempoolSpaceRepository } from './repositories'
 import { HttpService } from '@nestjs/axios'
-import { catchError, lastValueFrom, map } from 'rxjs'
-import { ConfigService } from '@nestjs/config'
 import {
   AddressResponseDto,
   BlockRequestDto,
   BlockResponseDto,
   BlockTimeRequestDto,
   BlockTimeResponseDto,
-  BlockBodyDto,
   FeesResponseDto,
   TransactionRequestDto,
   TransactionResponseDto,
@@ -18,12 +15,10 @@ import {
 @Injectable()
 export class BlockchainService {
   private readonly logger = new Logger(BlockchainService.name)
-  serviceMurrayUrl: string = this.cfgService.get<string>('SERVICE_MURRAY_URL')
 
   constructor(
     private readonly mempoolRepository: MempoolSpaceRepository,
     protected readonly httpService: HttpService,
-    private readonly cfgService: ConfigService,
   ) {}
 
   async getMempool(): Promise<any> {
@@ -91,21 +86,6 @@ export class BlockchainService {
     network,
   }: TransactionRequestDto): Promise<TransactionResponseDto> {
     return await this.mempoolRepository.postTransaction({ transaction, network })
-  }
-
-  async postBlock(block: BlockBodyDto) {
-    const webhookUrl = `${this.serviceMurrayUrl}/cronjobs/new-block`
-    await lastValueFrom(
-      this.httpService.post(webhookUrl, block).pipe(
-        map(() => {
-          this.logger.debug(`SEND WEBHOOK - ${webhookUrl}`)
-        }),
-        catchError(async () => {
-          this.logger.error(`SEND WEBHOOK - ${webhookUrl}`)
-          return null
-        }),
-      ),
-    )
   }
 
   async getHashRate() {
