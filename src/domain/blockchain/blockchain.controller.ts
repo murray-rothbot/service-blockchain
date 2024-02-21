@@ -4,11 +4,14 @@ import {
   AddressRequestDto,
   AddressRequestQueryDto,
   AddressResponseDto,
+  AddressTxsResponseDto,
+  AddressUtxosResponseDto,
   BlockRequestDto,
   BlockResponseDto,
   BlockTimeRequestDto,
   BlockTimeResponseDto,
   FeesResponseDto,
+  MempoolResponseDto,
   TransactionPostDto,
   TransactionPostParamsDto,
   TransactionRequestDto,
@@ -16,6 +19,7 @@ import {
 } from './dto'
 import { InjectWebSocketProvider, WebSocketClient, OnOpen } from 'nestjs-websocket'
 import { Cron } from '@nestjs/schedule'
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 
 @Controller('')
 export class BlockchainController {
@@ -38,27 +42,52 @@ export class BlockchainController {
     this.ws.send(JSON.stringify({ action: 'ping' }))
   }
 
+  @ApiOperation({
+    summary: 'Get mempool information.',
+  })
+  @ApiTags('Mempool')
+  @ApiOkResponse({ type: MempoolResponseDto })
   @Get('/mempool')
-  async getMempool(): Promise<any> {
+  async getMempool(): Promise<MempoolResponseDto> {
     return await this.blockService.getMempool()
   }
 
+  @ApiOperation({
+    summary: 'Get block information.',
+  })
+  @ApiTags('Block')
+  @ApiOkResponse({ type: BlockResponseDto })
   @Get('/block')
   async getBlock(@Query() params: BlockRequestDto): Promise<BlockResponseDto> {
     return await this.blockService.getBlock(params)
   }
 
+  @ApiOperation({
+    summary: 'Get block time.',
+  })
+  @ApiTags('Block')
+  @ApiOkResponse({ type: BlockTimeResponseDto })
   @Get('/block2time')
   async getBlockTime(@Query() params: BlockTimeRequestDto): Promise<BlockTimeResponseDto> {
     return await this.blockService.getBlockTime(params)
   }
 
+  @ApiOperation({
+    summary: 'Get mempool fees.',
+  })
+  @ApiTags('Mining')
+  @ApiOkResponse({ type: FeesResponseDto })
   @Get('/fees')
-  async getFees(@Query() params: any): Promise<FeesResponseDto> {
-    return await this.blockService.getFees(params)
+  async getFees(): Promise<FeesResponseDto> {
+    return await this.blockService.getFees()
   }
 
+  @ApiOperation({
+    summary: 'Get address information.',
+  })
+  @ApiTags('Address')
   @Get('/address/:address')
+  @ApiOkResponse({ type: AddressResponseDto })
   async getAddress(
     @Param() params: AddressRequestDto,
     @Query() paramsQuery: AddressRequestQueryDto,
@@ -66,27 +95,47 @@ export class BlockchainController {
     return await this.blockService.getAddress({ ...params, ...paramsQuery })
   }
 
+  @ApiOperation({
+    summary: 'Get address transactions.',
+  })
+  @ApiTags('Address')
   @Get('/address/:address/txs')
+  @ApiOkResponse({ type: AddressTxsResponseDto })
   async getAddressTxs(
     @Param() params: AddressRequestDto,
     @Query() paramsQuery: AddressRequestQueryDto,
-  ): Promise<AddressResponseDto> {
+  ): Promise<AddressTxsResponseDto> {
     return await this.blockService.getAddressTxs({ ...params, ...paramsQuery })
   }
 
+  @ApiOperation({
+    summary: 'Get address transactions utxo.',
+  })
+  @ApiTags('Address')
   @Get('/address/:address/txs/utxo')
+  @ApiOkResponse({ type: AddressUtxosResponseDto })
   async getAddressTxsUtxo(
     @Param() params: AddressRequestDto,
     @Query() paramsQuery: AddressRequestQueryDto,
-  ): Promise<AddressResponseDto> {
+  ): Promise<AddressUtxosResponseDto> {
     return await this.blockService.getAddressTxsUtxo({ ...params, ...paramsQuery })
   }
 
+  @ApiOperation({
+    summary: 'Get transaction information.',
+  })
+  @ApiTags('Transaction')
+  @ApiOkResponse({ type: TransactionResponseDto })
   @Get('/tx/:transaction/:network')
   async getTransaction(@Param() params: TransactionRequestDto): Promise<TransactionResponseDto> {
     return await this.blockService.getTransaction({ ...params })
   }
 
+  @ApiOperation({
+    summary: 'Post transaction.',
+  })
+  @ApiTags('Transaction')
+  @ApiOkResponse({ type: TransactionResponseDto })
   @Post('/tx/:network')
   async postTransaction(
     @Param() paramsQuery: TransactionPostParamsDto,

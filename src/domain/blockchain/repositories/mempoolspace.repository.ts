@@ -3,8 +3,9 @@ import { AxiosResponse } from 'axios'
 import { Injectable } from '@nestjs/common'
 import { catchError, lastValueFrom, map } from 'rxjs'
 import {
-  AddressRequestDto,
   AddressResponseDto,
+  AddressTxsResponseDto,
+  AddressUtxosResponseDto,
   BlockRequestDto,
   BlockResponseDto,
   FeesResponseDto,
@@ -33,7 +34,6 @@ export class MempoolSpaceRepository implements IBlockRepository {
     const mempool_url = this.cfgService.get<string>('MEMPOOL_URL', 'https://mempool.space')
 
     this.baseUrl = `${mempool_url}/api`
-    this.baseUrlTestnet = `${mempool_url}/testnet/api`
   }
 
   async getMempool(): Promise<any> {
@@ -90,13 +90,10 @@ export class MempoolSpaceRepository implements IBlockRepository {
     )
   }
 
-  async getFees({ network }): Promise<FeesResponseDto> {
-    let url = `${this.baseUrl}/v1/fees/recommended`
-    if (network === 'testnet') {
-      url = `${this.baseUrlTestnet}/v1/fees/recommended`
-    }
+  async getFees(): Promise<FeesResponseDto> {
+    const url = `${this.baseUrl}/v1/fees/recommended`
 
-    const { fastestFee, halfHourFee, hourFee, economyFee, minimumFee } = await lastValueFrom(
+    return await lastValueFrom(
       this.httpService.get(url).pipe(
         map((response: AxiosResponse<IFeesResponse>): FeesResponseDto => {
           return response.data
@@ -108,16 +105,10 @@ export class MempoolSpaceRepository implements IBlockRepository {
         }),
       ),
     )
-
-    return { fastestFee, halfHourFee, hourFee, economyFee, minimumFee }
   }
 
-  async getAddress({ address, network }: any): Promise<AddressResponseDto> {
-    let url = `${this.baseUrl}/address/${address}`
-
-    if (network === 'testnet') {
-      url = `${this.baseUrlTestnet}/address/${address}`
-    }
+  async getAddress({ address }: any): Promise<AddressResponseDto> {
+    const url = `${this.baseUrl}/address/${address}`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
@@ -133,16 +124,12 @@ export class MempoolSpaceRepository implements IBlockRepository {
     )
   }
 
-  async getAddressTxs({ address, network }: any): Promise<AddressResponseDto> {
-    let url = `${this.baseUrl}/address/${address}/txs/chain`
-
-    if (network === 'testnet') {
-      url = `${this.baseUrlTestnet}/address/${address}/txs/chain`
-    }
+  async getAddressTxs({ address }: any): Promise<AddressTxsResponseDto> {
+    const url = `${this.baseUrl}/address/${address}/txs/chain`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<any>): AddressResponseDto => {
+        map((response: AxiosResponse<any>): AddressTxsResponseDto => {
           return response.data
         }),
         catchError(async () => {
@@ -154,16 +141,12 @@ export class MempoolSpaceRepository implements IBlockRepository {
     )
   }
 
-  async getAddressTxsUtxo({ address, network }: any): Promise<AddressResponseDto> {
-    let url = `${this.baseUrl}/address/${address}/utxo`
-
-    if (network === 'testnet') {
-      url = `${this.baseUrlTestnet}/address/${address}/utxo`
-    }
+  async getAddressTxsUtxo({ address }: any): Promise<AddressUtxosResponseDto> {
+    const url = `${this.baseUrl}/address/${address}/utxo`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<any>): AddressResponseDto => {
+        map((response: AxiosResponse<any>): AddressUtxosResponseDto => {
           return response.data
         }),
         catchError(async () => {
@@ -175,15 +158,9 @@ export class MempoolSpaceRepository implements IBlockRepository {
     )
   }
 
-  async getTransaction({
-    transaction,
-    network,
-  }: TransactionRequestDto): Promise<TransactionResponseDto> {
-    let url = `${this.baseUrl}/tx/${transaction}`
+  async getTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
+    const url = `${this.baseUrl}/tx/${transaction}`
 
-    if (network === 'testnet') {
-      url = `${this.baseUrlTestnet}/tx/${transaction}`
-    }
     return lastValueFrom(
       this.httpService.get(url).pipe(
         map((response: AxiosResponse<ITxResponse>): TransactionResponseDto => {
@@ -198,15 +175,8 @@ export class MempoolSpaceRepository implements IBlockRepository {
     )
   }
 
-  async postTransaction({
-    transaction,
-    network,
-  }: TransactionRequestDto): Promise<TransactionResponseDto> {
+  async postTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
     let url = `${this.baseUrl}/tx`
-
-    if (network === 'testnet') {
-      url = `${this.baseUrlTestnet}/tx`
-    }
 
     return lastValueFrom(
       this.httpService.post(url, transaction).pipe(
@@ -224,6 +194,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
   async getDifficulty() {
     const url = `${this.baseUrl}/v1/difficulty-adjustment`
+
     return lastValueFrom(
       this.httpService.get(url).pipe(
         map((response: AxiosResponse<string>): string => {
@@ -240,6 +211,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
   async getHashrate() {
     const url = `${this.baseUrl}/v1/mining/hashrate/1m`
+
     return lastValueFrom(
       this.httpService.get(url).pipe(
         map((response: AxiosResponse<string>): string => {

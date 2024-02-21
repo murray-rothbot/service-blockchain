@@ -18,13 +18,34 @@ export class AddressResponseDto {
   }
 }
 export class AddressTxsResponseDto {
-  txid: string
-  version: number
-  locktime: number
-  vin: any
-  vout: any
-  size: number
-  weight: number
-  fee: number
-  status: any
+  data: {
+    txid: string
+    version: number
+    locktime: number
+    vin: any[]
+    vout: any[]
+    size: number
+    weight: number
+    fee: number
+    status: {
+      confirmed: boolean
+      block_height: number
+      block_hash: string
+      block_time: number
+    }
+  }
+}
+
+export class AddressUtxosResponseDto {
+  data: {
+    txid: string
+    vout: number
+    status: {
+      confirmed: boolean
+      block_height: number
+      block_hash: string
+      block_time: number
+    }
+    value: number
+  }
 }
