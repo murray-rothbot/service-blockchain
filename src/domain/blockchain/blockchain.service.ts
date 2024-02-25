@@ -1,37 +1,37 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { MempoolSpaceRepository } from './repositories'
 import { HttpService } from '@nestjs/axios'
 import {
+  AddressRequestDto,
+  TransactionRequestDto,
+  BlockRequestDto,
   AddressResponseDto,
   AddressTxsResponseDto,
   AddressUtxosResponseDto,
-  BlockRequestDto,
-  BlockResponseDto,
-  BlockTimeRequestDto,
   BlockTimeResponseDto,
   FeesResponseDto,
-  TransactionRequestDto,
   TransactionResponseDto,
+  MempoolResponseDto,
+  TransactionPostRequestDto,
+  TransactionPostResponseDto,
 } from './dto'
 
 @Injectable()
 export class BlockchainService {
-  private readonly logger = new Logger(BlockchainService.name)
-
   constructor(
     private readonly mempoolRepository: MempoolSpaceRepository,
     protected readonly httpService: HttpService,
   ) {}
 
-  async getMempool(): Promise<any> {
+  async getMempool(): Promise<MempoolResponseDto> {
     return await this.mempoolRepository.getMempool()
   }
 
-  async getBlock(params: BlockRequestDto): Promise<BlockResponseDto> {
+  async getBlock(params?: BlockRequestDto): Promise<any> {
     return await this.mempoolRepository.getBlock(params)
   }
 
-  async getBlockTime({ hash, height }: BlockTimeRequestDto): Promise<BlockTimeResponseDto> {
+  async getBlockTime({ hash, height }: BlockRequestDto): Promise<BlockTimeResponseDto> {
     const found = await this.getBlock({ hash, height })
 
     if (found) {
@@ -42,7 +42,7 @@ export class BlockchainService {
       return null
     }
 
-    const current = await this.getBlock({})
+    const current = await this.getBlock()
     const estimative = current.timestamp + (height - current.height) * 600
 
     return { timestamp: estimative, height, in_future: true }
@@ -52,15 +52,15 @@ export class BlockchainService {
     return await this.mempoolRepository.getFees()
   }
 
-  async getAddress({ address }: any): Promise<AddressResponseDto> {
+  async getAddress({ address }: AddressRequestDto): Promise<AddressResponseDto> {
     return await this.mempoolRepository.getAddress({ address })
   }
 
-  async getAddressTxs({ address }: any): Promise<AddressTxsResponseDto> {
+  async getAddressTxs({ address }: AddressRequestDto): Promise<AddressTxsResponseDto> {
     return await this.mempoolRepository.getAddressTxs({ address })
   }
 
-  async getAddressTxsUtxo({ address, network }: any): Promise<AddressUtxosResponseDto> {
+  async getAddressTxsUtxo({ address }: AddressRequestDto): Promise<AddressUtxosResponseDto> {
     return await this.mempoolRepository.getAddressTxsUtxo({ address })
   }
 
@@ -68,8 +68,8 @@ export class BlockchainService {
     return await this.mempoolRepository.getTransaction({ transaction })
   }
 
-  async postTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
-    return await this.mempoolRepository.postTransaction({ transaction })
+  async postTransaction({ txHex }: TransactionPostRequestDto): Promise<TransactionPostResponseDto> {
+    return await this.mempoolRepository.postTransaction({ txHex })
   }
 
   async getHashRate() {

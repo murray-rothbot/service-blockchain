@@ -1,21 +1,20 @@
-import { Controller, Get, Query, Param, Logger, Post, Body } from '@nestjs/common'
+import { Controller, Get, Query, Param, Logger, Post } from '@nestjs/common'
 import { BlockchainService } from './blockchain.service'
 import {
   AddressRequestDto,
-  AddressRequestQueryDto,
   AddressResponseDto,
   AddressTxsResponseDto,
   AddressUtxosResponseDto,
   BlockRequestDto,
   BlockResponseDto,
-  BlockTimeRequestDto,
   BlockTimeResponseDto,
   FeesResponseDto,
   MempoolResponseDto,
-  TransactionPostDto,
-  TransactionPostParamsDto,
   TransactionRequestDto,
   TransactionResponseDto,
+  HashrateResponseDto,
+  TransactionPostResponseDto,
+  TransactionPostRequestDto,
 } from './dto'
 import { InjectWebSocketProvider, WebSocketClient, OnOpen } from 'nestjs-websocket'
 import { Cron } from '@nestjs/schedule'
@@ -45,7 +44,7 @@ export class BlockchainController {
   @ApiOperation({
     summary: 'Get mempool information.',
   })
-  @ApiTags('Mempool')
+  @ApiTags('Mining')
   @ApiOkResponse({ type: MempoolResponseDto })
   @Get('/mempool')
   async getMempool(): Promise<MempoolResponseDto> {
@@ -68,7 +67,7 @@ export class BlockchainController {
   @ApiTags('Block')
   @ApiOkResponse({ type: BlockTimeResponseDto })
   @Get('/block2time')
-  async getBlockTime(@Query() params: BlockTimeRequestDto): Promise<BlockTimeResponseDto> {
+  async getBlockTime(@Query() params: BlockRequestDto): Promise<BlockTimeResponseDto> {
     return await this.blockService.getBlockTime(params)
   }
 
@@ -88,11 +87,8 @@ export class BlockchainController {
   @ApiTags('Address')
   @Get('/address/:address')
   @ApiOkResponse({ type: AddressResponseDto })
-  async getAddress(
-    @Param() params: AddressRequestDto,
-    @Query() paramsQuery: AddressRequestQueryDto,
-  ): Promise<AddressResponseDto> {
-    return await this.blockService.getAddress({ ...params, ...paramsQuery })
+  async getAddress(@Param() params: AddressRequestDto): Promise<AddressResponseDto> {
+    return await this.blockService.getAddress({ ...params })
   }
 
   @ApiOperation({
@@ -101,11 +97,8 @@ export class BlockchainController {
   @ApiTags('Address')
   @Get('/address/:address/txs')
   @ApiOkResponse({ type: AddressTxsResponseDto })
-  async getAddressTxs(
-    @Param() params: AddressRequestDto,
-    @Query() paramsQuery: AddressRequestQueryDto,
-  ): Promise<AddressTxsResponseDto> {
-    return await this.blockService.getAddressTxs({ ...params, ...paramsQuery })
+  async getAddressTxs(@Param() params: AddressRequestDto): Promise<AddressTxsResponseDto> {
+    return await this.blockService.getAddressTxs({ ...params })
   }
 
   @ApiOperation({
@@ -114,11 +107,8 @@ export class BlockchainController {
   @ApiTags('Address')
   @Get('/address/:address/txs/utxo')
   @ApiOkResponse({ type: AddressUtxosResponseDto })
-  async getAddressTxsUtxo(
-    @Param() params: AddressRequestDto,
-    @Query() paramsQuery: AddressRequestQueryDto,
-  ): Promise<AddressUtxosResponseDto> {
-    return await this.blockService.getAddressTxsUtxo({ ...params, ...paramsQuery })
+  async getAddressTxsUtxo(@Param() params: AddressRequestDto): Promise<AddressUtxosResponseDto> {
+    return await this.blockService.getAddressTxsUtxo({ ...params })
   }
 
   @ApiOperation({
@@ -126,7 +116,7 @@ export class BlockchainController {
   })
   @ApiTags('Transaction')
   @ApiOkResponse({ type: TransactionResponseDto })
-  @Get('/tx/:transaction/:network')
+  @Get('/tx/:transaction')
   async getTransaction(@Param() params: TransactionRequestDto): Promise<TransactionResponseDto> {
     return await this.blockService.getTransaction({ ...params })
   }
@@ -135,17 +125,18 @@ export class BlockchainController {
     summary: 'Post transaction.',
   })
   @ApiTags('Transaction')
-  @ApiOkResponse({ type: TransactionResponseDto })
-  @Post('/tx/:network')
+  @ApiOkResponse({ type: TransactionPostRequestDto })
+  @Post('/tx/:txHex')
   async postTransaction(
-    @Param() paramsQuery: TransactionPostParamsDto,
-    @Body() params: TransactionPostDto,
-  ): Promise<TransactionResponseDto> {
-    return await this.blockService.postTransaction({ ...params, ...paramsQuery })
+    @Param() params: TransactionPostRequestDto,
+  ): Promise<TransactionPostResponseDto> {
+    return await this.blockService.postTransaction({ ...params })
   }
 
   @Get('/hashrate')
+  @ApiTags('Mining')
+  @ApiOkResponse({ type: HashrateResponseDto })
   async getHashrate() {
-    return this.blockService.getHashRate()
+    return await this.blockService.getHashRate()
   }
 }

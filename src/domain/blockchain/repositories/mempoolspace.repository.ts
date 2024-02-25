@@ -1,31 +1,28 @@
 import { HttpService } from '@nestjs/axios'
+import { ConfigService } from '@nestjs/config'
 import { AxiosResponse } from 'axios'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { catchError, lastValueFrom, map } from 'rxjs'
 import {
+  AddressRequestDto,
+  BlockRequestDto,
+  TransactionRequestDto,
+  BlockResponseDto,
+  FeesResponseDto,
+  MempoolResponseDto,
+  TransactionResponseDto,
   AddressResponseDto,
   AddressTxsResponseDto,
   AddressUtxosResponseDto,
-  BlockRequestDto,
-  BlockResponseDto,
-  FeesResponseDto,
-  TransactionRequestDto,
-  TransactionResponseDto,
+  TransactionPostResponseDto,
+  TransactionPostRequestDto,
+  HashrateResponseDto,
 } from '../dto'
-import {
-  IBlockRepository,
-  IBlockResponse,
-  IFeesResponse,
-  IAddressResponse,
-  ITxResponse,
-} from '../interfaces'
-import { ConfigService } from '@nestjs/config'
 
 @Injectable()
-export class MempoolSpaceRepository implements IBlockRepository {
-  source = 'Mempool.space'
-  baseUrl: string = ''
-  baseUrlTestnet: string = ''
+export class MempoolSpaceRepository {
+  private readonly logger = new Logger(MempoolSpaceRepository.name)
+  private baseUrl: string = ''
 
   constructor(
     private readonly httpService: HttpService,
@@ -36,17 +33,16 @@ export class MempoolSpaceRepository implements IBlockRepository {
     this.baseUrl = `${mempool_url}/api`
   }
 
-  async getMempool(): Promise<any> {
+  async getMempool(): Promise<MempoolResponseDto> {
     const url = `${this.baseUrl}/mempool`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<IBlockResponse>): any => {
+        map((response: AxiosResponse<MempoolResponseDto>): MempoolResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET MEMPOOL ${url}`)
           return null
         }),
       ),
@@ -60,12 +56,11 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
       hash = await lastValueFrom(
         this.httpService.get(url).pipe(
-          map((response: AxiosResponse<string>): string => {
+          map((response: AxiosResponse<BlockResponseDto>): BlockResponseDto => {
             return response.data
           }),
           catchError(async () => {
-            // TODO: Log errordto
-            console.error(url)
+            this.logger.debug(`GET BLOCK ${url}`)
             return null
           }),
         ),
@@ -78,12 +73,11 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<IBlockResponse>): BlockResponseDto => {
+        map((response: AxiosResponse<BlockResponseDto>): BlockResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET BLOCK ${url}`)
           return null
         }),
       ),
@@ -93,65 +87,61 @@ export class MempoolSpaceRepository implements IBlockRepository {
   async getFees(): Promise<FeesResponseDto> {
     const url = `${this.baseUrl}/v1/fees/recommended`
 
-    return await lastValueFrom(
+    return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<IFeesResponse>): FeesResponseDto => {
+        map((response: AxiosResponse<FeesResponseDto>): FeesResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET FEES ${url}`)
           return null
         }),
       ),
     )
   }
 
-  async getAddress({ address }: any): Promise<AddressResponseDto> {
+  async getAddress({ address }: AddressRequestDto): Promise<AddressResponseDto> {
     const url = `${this.baseUrl}/address/${address}`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<IAddressResponse>): AddressResponseDto => {
+        map((response: AxiosResponse<AddressResponseDto>): AddressResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET ADDRESS ${url}`)
           return null
         }),
       ),
     )
   }
 
-  async getAddressTxs({ address }: any): Promise<AddressTxsResponseDto> {
+  async getAddressTxs({ address }: AddressRequestDto): Promise<AddressTxsResponseDto> {
     const url = `${this.baseUrl}/address/${address}/txs/chain`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<any>): AddressTxsResponseDto => {
+        map((response: AxiosResponse<AddressTxsResponseDto>): AddressTxsResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET ADDRESS TXS ${url}`)
           return null
         }),
       ),
     )
   }
 
-  async getAddressTxsUtxo({ address }: any): Promise<AddressUtxosResponseDto> {
+  async getAddressTxsUtxo({ address }: AddressRequestDto): Promise<AddressUtxosResponseDto> {
     const url = `${this.baseUrl}/address/${address}/utxo`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<any>): AddressUtxosResponseDto => {
+        map((response: AxiosResponse<AddressUtxosResponseDto>): AddressUtxosResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET ADDRESS TXS UTXO ${url}`)
           return null
         }),
       ),
@@ -163,29 +153,27 @@ export class MempoolSpaceRepository implements IBlockRepository {
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<ITxResponse>): TransactionResponseDto => {
+        map((response: AxiosResponse<TransactionResponseDto>): TransactionResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          // // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET TX ${url}`)
           return null
         }),
       ),
     )
   }
 
-  async postTransaction({ transaction }: TransactionRequestDto): Promise<TransactionResponseDto> {
+  async postTransaction({ txHex }: TransactionPostRequestDto): Promise<TransactionPostResponseDto> {
     let url = `${this.baseUrl}/tx`
 
     return lastValueFrom(
-      this.httpService.post(url, transaction).pipe(
-        map((response: AxiosResponse<any>): TransactionResponseDto => {
+      this.httpService.post(url, txHex).pipe(
+        map((response: AxiosResponse<TransactionPostResponseDto>): TransactionPostResponseDto => {
           return response.data
         }),
-        catchError(async (err) => {
-          // // TODO: Log errordto
-          console.error(url, err)
+        catchError(async () => {
+          this.logger.debug(`POST TX ${txHex}`)
           return null
         }),
       ),
@@ -201,15 +189,14 @@ export class MempoolSpaceRepository implements IBlockRepository {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET DIFFICULTY ${url}`)
           return null
         }),
       ),
     )
   }
 
-  async getHashrate() {
+  async getHashrate(): Promise<HashrateResponseDto> {
     const url = `${this.baseUrl}/v1/mining/hashrate/1m`
 
     return lastValueFrom(
@@ -218,8 +205,7 @@ export class MempoolSpaceRepository implements IBlockRepository {
           return response.data
         }),
         catchError(async () => {
-          // TODO: Log errordto
-          console.error(url)
+          this.logger.debug(`GET HASHRATE ${url}`)
           return null
         }),
       ),

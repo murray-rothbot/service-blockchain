@@ -1,4 +1,4 @@
-class FeeHistogramEntry {
+interface FeeHistogramEntry {
   feeRate: number
   vsize: number
 }

@@ -24,7 +24,7 @@ async function bootstrap() {
     }),
   )
   await app.listen(PORT).then(() => {
-    Logger.log(`:: 🚀 Blockchain Info API :: ${NODE_ENV} ::`)
+    Logger.log(`:: 🚀 Blockchain API :: ${NODE_ENV} ::`)
     Logger.log(`:: 💡 API Running on port ${PORT} ::`)
   })
 }
