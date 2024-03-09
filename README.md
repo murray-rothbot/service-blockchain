@@ -4,6 +4,9 @@
 ## Description
 
 This is a NestJS APIs to provide Blockchain endpoints.
+You can find the Swagger documentation at:
+
+https://blockchain.murrayrothbot.com/swagger
 
 ## Installation
 
