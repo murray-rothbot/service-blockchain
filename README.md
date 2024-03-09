@@ -3,7 +3,7 @@
 
 ## Description
 
-This is a NestJS APIs to provide BTC exchange rates.
+This is a NestJS APIs to provide Blockchain endpoints.
 
 ## Installation
 
@@ -11,7 +11,7 @@ This is a NestJS APIs to provide BTC exchange rates.
 $ npm install
 ```
 
-## Running the app
+## Running
 
 ```bash
 # development
@@ -47,11 +47,12 @@ $ npm run clean
 $ npm run check
 ```
 
-## Support
+---
 
-RTFM
+## Contributing
+
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
 
-This project is released under the terms of the MIT license.
-See https://opensource.org/licenses/MIT.
+This project is licensed under the terms of the [MIT](./LICENSE).
