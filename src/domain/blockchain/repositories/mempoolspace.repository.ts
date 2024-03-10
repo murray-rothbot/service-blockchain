@@ -8,7 +8,8 @@ import {
   BlockRequestDto,
   TransactionRequestDto,
   BlockResponseDto,
-  FeesResponseDto,
+  FeesRecommendedResponseDto,
+  FeesMempoolBlocksResponseDto,
   MempoolResponseDto,
   TransactionResponseDto,
   AddressResponseDto,
@@ -84,16 +85,34 @@ export class MempoolSpaceRepository {
     )
   }
 
-  async getFees(): Promise<FeesResponseDto> {
+  async getFeesRecommended(): Promise<FeesRecommendedResponseDto> {
     const url = `${this.baseUrl}/v1/fees/recommended`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
-        map((response: AxiosResponse<FeesResponseDto>): FeesResponseDto => {
+        map((response: AxiosResponse<FeesRecommendedResponseDto>): FeesRecommendedResponseDto => {
           return response.data
         }),
         catchError(async () => {
-          this.logger.debug(`GET FEES ${url}`)
+          this.logger.debug(`GET FEES RECOMMENDED ${url}`)
+          return null
+        }),
+      ),
+    )
+  }
+
+  async getFeesMempoolBlocks(): Promise<FeesMempoolBlocksResponseDto> {
+    const url = `${this.baseUrl}/v1/fees/mempool-blocks`
+
+    return lastValueFrom(
+      this.httpService.get(url).pipe(
+        map(
+          (response: AxiosResponse<FeesMempoolBlocksResponseDto>): FeesMempoolBlocksResponseDto => {
+            return response.data
+          },
+        ),
+        catchError(async () => {
+          this.logger.debug(`GET FEES MEMPOOL BLOCKS ${url}`)
           return null
         }),
       ),

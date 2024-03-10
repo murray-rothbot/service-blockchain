@@ -1,4 +1,4 @@
-export class FeesResponseDto {
+export class FeesRecommendedResponseDto {
   data: {
     fastestFee: number
     halfHourFee: number
@@ -6,4 +6,14 @@ export class FeesResponseDto {
     economyFee: number
     minimumFee: number
   }
+}
+export class FeesMempoolBlocksResponseDto {
+  data: {
+    blockSize: number
+    blockVSize: number
+    nTx: number
+    totalFees: number
+    medianFee: number
+    feeRange: number[]
+  }[]
 }

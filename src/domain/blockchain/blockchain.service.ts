@@ -9,7 +9,7 @@ import {
   AddressTxsResponseDto,
   AddressUtxosResponseDto,
   BlockTimeResponseDto,
-  FeesResponseDto,
+  FeesRecommendedResponseDto,
   TransactionResponseDto,
   MempoolResponseDto,
   TransactionPostRequestDto,
@@ -48,8 +48,8 @@ export class BlockchainService {
     return { timestamp: estimative, height, in_future: true }
   }
 
-  async getFees(): Promise<FeesResponseDto> {
-    return await this.mempoolRepository.getFees()
+  async getFeesRecommended(): Promise<FeesRecommendedResponseDto> {
+    return await this.mempoolRepository.getFeesRecommended()
   }
 
   async getAddress({ address }: AddressRequestDto): Promise<AddressResponseDto> {

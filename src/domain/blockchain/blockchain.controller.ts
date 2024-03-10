@@ -11,7 +11,8 @@ import {
   BlockRequestDto,
   BlockResponseDto,
   BlockTimeResponseDto,
-  FeesResponseDto,
+  FeesRecommendedResponseDto,
+  FeesMempoolBlocksResponseDto,
   MempoolResponseDto,
   TransactionRequestDto,
   TransactionResponseDto,
@@ -72,17 +73,20 @@ export class BlockchainController {
   }
 
   @ApiOperation({
-    summary: 'Get mempool fees.',
+    summary: 'Get recommended mempool fees.',
+    description: 'Returns our currently suggested fees for new transactions.',
   })
-  @ApiTags('Mining')
-  @ApiOkResponse({ type: FeesResponseDto })
-  @Get('/fees')
-  async getFees(): Promise<FeesResponseDto> {
-    return await this.blockService.getFees()
+  @ApiTags('Fees')
+  @ApiOkResponse({ type: FeesRecommendedResponseDto })
+  @Get('/fees-recommended')
+  async getFees(): Promise<FeesRecommendedResponseDto> {
+    return await this.blockService.getFeesRecommended()
   }
 
   @ApiOperation({
     summary: 'Get address information.',
+    description:
+      'Returns details about an address. Available fields: address, chain_stats, and mempool_stats.',
   })
   @ApiTags('Address')
   @Get('/address/:address')
@@ -92,7 +96,10 @@ export class BlockchainController {
   }
 
   @ApiOperation({
-    summary: 'Get address transactions.',
+    summary:
+      'Get transaction history for the specified address/scripthash, sorted with newest first.',
+    description:
+      'Get transaction history for the specified address/scripthash, sorted with newest first. Returns up to 50 mempool transactions plus the first 25 confirmed transactions. You can request more confirmed transactions using an after_txid query parameter.',
   })
   @ApiTags('Address')
   @Get('/address/:address/txs')
