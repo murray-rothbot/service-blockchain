@@ -78,10 +78,21 @@ export class BlockchainController {
   })
   @ApiTags('Fees')
   @ApiOkResponse({ type: FeesRecommendedResponseDto })
-  @Get('/fees-recommended')
-  async getFees(): Promise<FeesRecommendedResponseDto> {
+  @Get('/fees/recommended')
+  async getFeesRecommended(): Promise<FeesRecommendedResponseDto> {
     return await this.blockService.getFeesRecommended()
   }
+
+  // @ApiOperation({
+  //   summary: 'Get recommended mempool block fees.',
+  //   description: 'Returns current mempool as projected blocks.',
+  // })
+  // @ApiTags('Fees')
+  // @ApiOkResponse({ type: FeesMempoolBlocksResponseDto })
+  // @Get('/fees/mempool-blocks')
+  // async getFeesMempoolBlocks(): Promise<FeesMempoolBlocksResponseDto> {
+  //   return await this.blockService.getFeesMempoolBlocks()
+  // }
 
   @ApiOperation({
     summary: 'Get address information.',

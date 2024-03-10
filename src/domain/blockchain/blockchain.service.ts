@@ -14,6 +14,7 @@ import {
   MempoolResponseDto,
   TransactionPostRequestDto,
   TransactionPostResponseDto,
+  FeesMempoolBlocksResponseDto,
 } from './dto'
 
 @Injectable()
@@ -50,6 +51,10 @@ export class BlockchainService {
 
   async getFeesRecommended(): Promise<FeesRecommendedResponseDto> {
     return await this.mempoolRepository.getFeesRecommended()
+  }
+
+  async getFeesMempoolBlocks(): Promise<FeesMempoolBlocksResponseDto> {
+    return await this.mempoolRepository.getFeesMempoolBlocks()
   }
 
   async getAddress({ address }: AddressRequestDto): Promise<AddressResponseDto> {
