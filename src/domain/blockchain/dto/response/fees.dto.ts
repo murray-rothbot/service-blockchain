@@ -7,13 +7,14 @@ export class FeesRecommendedResponseDto {
     minimumFee: number
   }
 }
+interface FeesMempoolResponse {
+  blockSize: number
+  blockVSize: number
+  nTx: number
+  totalFees: number
+  medianFee: number
+  feeRange: number[]
+}
 export class FeesMempoolBlocksResponseDto {
-  data: {
-    blockSize: number
-    blockVSize: number
-    nTx: number
-    totalFees: number
-    medianFee: number
-    feeRange: number[]
-  }[]
+  data: FeesMempoolResponse[]
 }
