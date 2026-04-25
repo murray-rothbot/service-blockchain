@@ -86,7 +86,7 @@ export class MempoolSpaceRepository {
   }
 
   async getFeesRecommended(): Promise<FeesRecommendedResponseDto> {
-    const url = `${this.baseUrl}/v1/fees/recommended`
+    const url = `${this.baseUrl}/v1/fees/precise`
 
     return lastValueFrom(
       this.httpService.get(url).pipe(
@@ -94,7 +94,7 @@ export class MempoolSpaceRepository {
           return response.data
         }),
         catchError(async () => {
-          this.logger.debug(`GET FEES RECOMMENDED ${url}`)
+          this.logger.debug(`GET FEES PRECISE ${url}`)
           return null
         }),
       ),
