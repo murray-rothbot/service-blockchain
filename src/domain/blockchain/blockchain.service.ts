@@ -83,6 +83,6 @@ export class BlockchainService {
       this.mempoolRepository.getDifficulty(),
     ])
 
-    return Object.assign(difficulty, hashrate)
+    return Object.assign({}, difficulty ?? {}, hashrate ?? {})
   }
 }
