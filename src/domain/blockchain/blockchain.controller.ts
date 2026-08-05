@@ -1,5 +1,5 @@
 import { Controller, Get, Query, Param, Logger, Post } from '@nestjs/common'
-import { InjectWebSocketProvider, WebSocketClient, OnOpen } from 'nestjs-websocket'
+import { InjectWebSocketProvider, WebSocketClient, OnError, OnOpen } from 'nestjs-websocket'
 import { Cron } from '@nestjs/schedule'
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { BlockchainService } from './blockchain.service'
@@ -35,6 +35,11 @@ export class BlockchainController {
   openWs(): void {
     this.logger.debug(`Mempool.Space Websocket watching.`)
     this.ws.send(JSON.stringify({ action: 'want', data: ['blocks'] }))
+  }
+
+  @OnError()
+  handleWsError(error: Error): void {
+    this.logger.warn(`Mempool.Space websocket error: ${error.message}`)
   }
 
   @Cron('*/10 * * * * *')
