@@ -24,14 +24,35 @@ import {
 export class MempoolSpaceRepository {
   private readonly logger = new Logger(MempoolSpaceRepository.name)
   private baseUrl: string = ''
+  private fallbackBaseUrl: string = ''
+  private timeout: number
 
   constructor(
     private readonly httpService: HttpService,
     private readonly cfgService: ConfigService,
   ) {
     const mempool_url = this.cfgService.get<string>('MEMPOOL_URL', 'https://mempool.space')
+    const fallback_url = this.cfgService.get<string>(
+      'MEMPOOL_FALLBACK_URL',
+      'https://blockstream.info',
+    )
 
     this.baseUrl = `${mempool_url}/api`
+    this.fallbackBaseUrl = `${fallback_url}/api`
+    this.timeout = Number(this.cfgService.get<number>('MEMPOOL_HTTP_TIMEOUT_MS', 1500))
+  }
+
+  private async get<T>(url: string): Promise<T | null> {
+    try {
+      return await lastValueFrom(
+        this.httpService
+          .get<T>(url, { timeout: this.timeout })
+          .pipe(map((response: AxiosResponse<T>): T => response.data)),
+      )
+    } catch {
+      this.logger.debug(`GET failed ${url}`)
+      return null
+    }
   }
 
   async getMempool(): Promise<MempoolResponseDto> {
@@ -51,54 +72,49 @@ export class MempoolSpaceRepository {
   }
 
   async getBlock({ hash, height }: BlockRequestDto): Promise<BlockResponseDto> {
+    let useFallback = false
+
     if (!hash) {
       const uri = height ? `block-height/${height}` : 'blocks/tip/hash'
-      const url = `${this.baseUrl}/${uri}`
+      hash = await this.get<string>(`${this.baseUrl}/${uri}`)
 
-      hash = await lastValueFrom(
-        this.httpService.get(url).pipe(
-          map((response: AxiosResponse<BlockResponseDto>): BlockResponseDto => {
-            return response.data
-          }),
-          catchError(async () => {
-            this.logger.debug(`GET BLOCK ${url}`)
-            return null
-          }),
-        ),
-      )
+      if (!hash) {
+        useFallback = true
+        hash = await this.get<string>(`${this.fallbackBaseUrl}/${uri}`)
+      }
     }
 
     if (!hash) return null
 
-    const url = `${this.baseUrl}/v1/block/${hash}`
+    if (useFallback) {
+      return await this.get<BlockResponseDto>(`${this.fallbackBaseUrl}/block/${hash}`)
+    }
 
-    return lastValueFrom(
-      this.httpService.get(url).pipe(
-        map((response: AxiosResponse<BlockResponseDto>): BlockResponseDto => {
-          return response.data
-        }),
-        catchError(async () => {
-          this.logger.debug(`GET BLOCK ${url}`)
-          return null
-        }),
-      ),
-    )
+    const block = await this.get<BlockResponseDto>(`${this.baseUrl}/v1/block/${hash}`)
+    return block ?? (await this.get<BlockResponseDto>(`${this.fallbackBaseUrl}/block/${hash}`))
   }
 
   async getFeesRecommended(): Promise<FeesRecommendedResponseDto> {
     const url = `${this.baseUrl}/v1/fees/precise`
+    const fees = await this.get<FeesRecommendedResponseDto>(url)
 
-    return lastValueFrom(
-      this.httpService.get(url).pipe(
-        map((response: AxiosResponse<FeesRecommendedResponseDto>): FeesRecommendedResponseDto => {
-          return response.data
-        }),
-        catchError(async () => {
-          this.logger.debug(`GET FEES PRECISE ${url}`)
-          return null
-        }),
-      ),
+    if (fees) return fees
+
+    const estimates = await this.get<Record<string, number>>(
+      `${this.fallbackBaseUrl}/fee-estimates`,
     )
+
+    if (!estimates) return null
+
+    const rounded = (blocks: number): number => Math.max(1, Math.ceil(estimates[blocks] ?? 1))
+
+    return {
+      fastestFee: rounded(1),
+      halfHourFee: rounded(3),
+      hourFee: rounded(6),
+      economyFee: rounded(144),
+      minimumFee: rounded(1008),
+    } as unknown as FeesRecommendedResponseDto
   }
 
   async getFeesMempoolBlocks(): Promise<FeesMempoolBlocksResponseDto> {
